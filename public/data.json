@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "nombre": "Gotas de Árnica",
+    "descripcion": "Alivio natural para golpes, contusiones e inflamaciones. Ideal para deportistas y recuperación post-traumática.",
+    "precio": 120,
+    "imagen": "/productos/arnica.jpg",
+    "categoria": "Traumatología",
+    "presentacion": "Frasco de 30ml",
+    "beneficios": ["Anti-inflamatorio", "Analgésico", "100% Natural"],
+    "registroSanitario": "RS-2024-001"
+  },
+  {
+    "id": 2,
+    "nombre": "Tabletas de Nux Vomica",
+    "descripcion": "Tratamiento efectivo para problemas digestivos, náuseas y malestar estomacal. Fórmula homeopática tradicional.",
+    "precio": 150,
+    "imagen": "/productos/nuxvomica.jpg",
+    "categoria": "Digestivo",
+    "presentacion": "Frasco de 60 tabletas",
+    "beneficios": ["Digestivo", "Anti-náuseas", "Detox natural"],
+    "registroSanitario": "RS-2024-002"
+  },
+  {
+    "id": 3,
+    "nombre": "Extracto de Calendula",
+    "descripcion": "Solución natural para el cuidado de la piel, heridas menores y regeneración celular.",
+    "precio": 95,
+    "imagen": "/productos/calendula.jpg",
+    "categoria": "Dermatología",
+    "presentacion": "Tubo de 50g",
+    "beneficios": ["Cicatrizante", "Antiséptico", "Regenerador"],
+    "registroSanitario": "RS-2024-003"
+  },
+  {
+    "id": 4,
+    "nombre": "Complejo Nervioso",
+    "descripcion": "Fórmula especializada para el manejo del estrés, ansiedad y trastornos del sueño.",
+    "precio": 180,
+    "imagen": "/productos/nervioso.jpg",
+    "categoria": "Neurología",
+    "presentacion": "Frasco de 30ml",
+    "beneficios": ["Relajante", "Anti-estrés", "Mejora el sueño"],
+    "registroSanitario": "RS-2024-004"
+  }
+]
