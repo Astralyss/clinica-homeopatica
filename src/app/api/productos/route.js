@@ -1,13 +1,27 @@
-import { PrismaClient } from '@/generated/prisma';
-
-const prisma = new PrismaClient();
+import { ProductosService } from '@/utils/services/productosService';
 
 export async function GET(req) {
   try {
-    const productos = await prisma.producto.findMany({
-      include: { imagenes: true },
-    });
-    return new Response(JSON.stringify(productos), {
+    const { searchParams } = new URL(req.url);
+    const termino = searchParams.get('search');
+    const categoria = searchParams.get('categoria');
+
+    let resultado;
+    
+    if (termino || categoria) {
+      resultado = await ProductosService.buscar(termino || '', categoria);
+    } else {
+      resultado = await ProductosService.obtenerTodos();
+    }
+
+    if (!resultado.success) {
+      return new Response(JSON.stringify({ error: resultado.error }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(resultado.data), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -22,19 +36,16 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { imagenes, ...productoData } = body;
-    const nuevo = await prisma.producto.create({
-      data: {
-        ...productoData,
-        imagenes: imagenes && imagenes.length > 0
-          ? {
-              create: imagenes.map(img => ({ url: img.url, esPrincipal: !!img.esPrincipal }))
-            }
-          : undefined,
-      },
-      include: { imagenes: true },
-    });
-    return new Response(JSON.stringify(nuevo), {
+    const resultado = await ProductosService.crear(body);
+
+    if (!resultado.success) {
+      return new Response(JSON.stringify({ error: resultado.error }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(resultado.data), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -49,29 +60,26 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = Number(searchParams.get('id'));
-    if (!id) return new Response(JSON.stringify({ error: 'ID requerido' }), { status: 400 });
-    const body = await req.json();
-    const { imagenes, ...productoData } = body;
-    // Actualizar producto
-    const actualizado = await prisma.producto.update({
-      where: { id },
-      data: productoData,
-    });
-    // Eliminar imágenes anteriores
-    await prisma.imagenProducto.deleteMany({ where: { productoId: id } });
-    // Crear nuevas imágenes (si hay)
-    if (imagenes && imagenes.length > 0) {
-      await prisma.imagenProducto.createMany({
-        data: imagenes.map(img => ({ url: img.url, esPrincipal: !!img.esPrincipal, productoId: id })),
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID requerido' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
       });
     }
-    // Devolver producto actualizado con imágenes
-    const productoConImagenes = await prisma.producto.findUnique({
-      where: { id },
-      include: { imagenes: true },
-    });
-    return new Response(JSON.stringify(productoConImagenes), {
+
+    const body = await req.json();
+    const resultado = await ProductosService.actualizar(id, body);
+
+    if (!resultado.success) {
+      return new Response(JSON.stringify({ error: resultado.error }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(resultado.data), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -86,12 +94,25 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = Number(searchParams.get('id'));
-    if (!id) return new Response(JSON.stringify({ error: 'ID requerido' }), { status: 400 });
-    // Eliminar imágenes asociadas primero (por seguridad)
-    await prisma.imagenProducto.deleteMany({ where: { productoId: id } });
-    await prisma.producto.delete({ where: { id } });
-    return new Response(JSON.stringify({ ok: true }), {
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return new Response(JSON.stringify({ error: 'ID requerido' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const resultado = await ProductosService.eliminar(id);
+
+    if (!resultado.success) {
+      return new Response(JSON.stringify({ error: resultado.error }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
