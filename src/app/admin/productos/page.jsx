@@ -33,6 +33,47 @@ function ProductosAdmin() {
   // Obtener categorías únicas de los productos reales
   const categories = [...new Set(productos.map(p => p.categoria))]
 
+  // Contar productos principales
+  const productosPrincipales = productos.filter(p => p.esPrincipal)
+  const numPrincipales = productosPrincipales.length
+  const maxPrincipales = 6
+
+  // Función para marcar/desmarcar como principal
+  const handleTogglePrincipal = async (product) => {
+    const nuevoEstado = !product.esPrincipal
+    
+    // Si está intentando marcar como principal y ya hay 6, no permitir
+    if (nuevoEstado && numPrincipales >= maxPrincipales) {
+      alert('Ya hay 6 productos principales. Desmarca uno para poder marcar otro.')
+      return
+    }
+
+    try {
+      const resultado = await actualizarProducto(product.id, {
+        nombre: product.nombre,
+        categoria: product.categoria,
+        precio: product.precio,
+        presentacion: product.presentacion,
+        descripcion: product.descripcion,
+        beneficios: product.beneficios,
+        id_producto: product.id_producto,
+        cantidad: product.cantidad,
+        esPrincipal: nuevoEstado,
+        activo: product.activo,
+        imagenes: product.imagenes || []
+      })
+      
+      if (resultado.success) {
+        console.log(`Producto ${nuevoEstado ? 'marcado' : 'desmarcado'} como principal`)
+      } else {
+        alert('Error al actualizar el producto: ' + resultado.error)
+      }
+    } catch (error) {
+      console.error('Error al cambiar estado principal:', error)
+      alert('Error al actualizar el producto')
+    }
+  }
+
   // Filtrar productos localmente para búsqueda en tiempo real
   const filteredProducts = productos.filter(product => {
     const matchesSearch = product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -300,6 +341,8 @@ function ProductosAdmin() {
                 onDelete={handleDelete}
                 onView={handleView}
                 onDuplicate={handleDuplicate}
+                onTogglePrincipal={handleTogglePrincipal}
+                disablePrincipalToggle={numPrincipales >= maxPrincipales}
                 viewMode={viewMode}
               />
             ))}
@@ -342,7 +385,10 @@ function ProductosAdmin() {
         open={sidePanelOpen}
         onClose={() => setSidePanelOpen(false)}
         modo={sidePanelMode}
-        producto={sidePanelProducto}
+        producto={{
+          ...sidePanelProducto,
+          numPrincipales: numPrincipales
+        }}
         onSave={async (data) => {
           if (sidePanelMode === 'editar' && sidePanelProducto) {
             await actualizarProducto(sidePanelProducto.id, data)

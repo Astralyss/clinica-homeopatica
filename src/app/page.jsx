@@ -5,7 +5,7 @@ import PharmaSecction from "@/components/landing/PharmaSecction";
 import History from "@/components/landing/History";
 import AboutUs from "@/components/landing/AboutUs";
 import HeroSection from "@/components/landing/HeroSection";
-import ConsultForm from "@/components/forms/ConsultForm";
+// import ConsultForm from "@/components/forms/ConsultForm";
 
 export default function Home() {
   return (
@@ -90,7 +90,7 @@ export default function Home() {
         </div>
       </div> */}
 
-      <ConsultForm />
+      {/* <ConsultForm /> */}
 
       <PharmaSecction />
       <History />

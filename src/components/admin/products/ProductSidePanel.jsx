@@ -1,7 +1,17 @@
 import React, { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, RefreshCw } from 'lucide-react'
 import MultiImageUpload from './MultiImageUpload'
 import { uploadImagesToSupabase } from '@/utils/uploadToSupabase'
+
+// Función para generar código de barras único
+const generarCodigoBarras = () => {
+  const fecha = new Date()
+  const fechaStr = fecha.getFullYear().toString() + 
+                   (fecha.getMonth() + 1).toString().padStart(2, '0') + 
+                   fecha.getDate().toString().padStart(2, '0')
+  const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0')
+  return `PROD-${fechaStr}-${random}`
+}
 
 export default function ProductSidePanel({ open, onClose, modo = 'nuevo', producto = null, onSave, onEdit }) {
   // Estado para imágenes seleccionadas
@@ -17,6 +27,31 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
   const [presentacion, setPresentacion] = useState(producto?.presentacion || '')
   const [descripcion, setDescripcion] = useState(producto?.descripcion || '')
   const [beneficios, setBeneficios] = useState(producto?.beneficios ? producto.beneficios.join(', ') : '')
+  // NUEVOS CAMPOS
+  const [idProducto, setIdProducto] = useState(producto?.id_producto || '')
+  const [cantidad, setCantidad] = useState(producto?.cantidad?.toString() || '')
+  const [esPrincipal, setEsPrincipal] = useState(producto?.esPrincipal || false)
+
+  // Obtener el número de productos principales (se recibe por prop o se puede pedir a la API)
+  // Por simplicidad, lo recibiremos por prop: numPrincipales
+  // Si no se pasa, por defecto 0
+  const numPrincipales = typeof producto?.numPrincipales === 'number' ? producto.numPrincipales : 0
+  const maxPrincipales = 6
+  const principalDeshabilitado = !esPrincipal && numPrincipales >= maxPrincipales && panelMode === 'editar'
+
+  // Función para regenerar código de barras
+  const regenerarCodigoBarras = () => {
+    setIdProducto(generarCodigoBarras())
+  }
+
+  // Función para manejar cambios en cantidad
+  const handleCantidadChange = (e) => {
+    const valor = e.target.value
+    // Permitir solo números y campo vacío
+    if (valor === '' || /^\d+$/.test(valor)) {
+      setCantidad(valor)
+    }
+  }
 
   React.useEffect(() => {
     if (open) {
@@ -39,6 +74,10 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
       setImagenes([])
       setBeneficios('')
       setError(null)
+      // Generar código de barras automáticamente para productos nuevos
+      setIdProducto(generarCodigoBarras())
+      setCantidad('')
+      setEsPrincipal(false)
     }
     if (open && producto && modo !== 'nuevo') {
       setNombre(producto.nombre || '')
@@ -55,6 +94,9 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
       } else {
         setBeneficios('')
       }
+      setIdProducto(producto.id_producto || '')
+      setCantidad(producto.cantidad?.toString() || '')
+      setEsPrincipal(producto.esPrincipal || false)
       setError(null)
     }
   }, [open, modo, producto])
@@ -89,13 +131,16 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
         esPrincipal: idx === 0
       }))
       const data = {
+        id_producto: idProducto,
         nombre,
         categoria,
         precio: parseFloat(precio),
         presentacion,
         descripcion,
         imagenes: imagenesFinal,
-        beneficios: beneficios.split(',').map(b => b.trim()).filter(Boolean)
+        beneficios: beneficios.split(',').map(b => b.trim()).filter(Boolean),
+        cantidad: cantidad === '' ? 0 : parseInt(cantidad),
+        esPrincipal,
       }
       await onSave(data)
       onClose()
@@ -161,8 +206,35 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
             <h3 className="text-lg font-medium text-gray-900 mb-1">Información básica</h3>
             <p className="text-sm text-gray-500">Datos principales del producto</p>
           </div>
-          
           <div className="grid grid-cols-1 gap-6">
+            {/* Código de barras */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Código de barras
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 bg-white"
+                  placeholder="Ej. PROD-20241207-0001"
+                  value={idProducto}
+                  onChange={e => setIdProducto(e.target.value)}
+                  disabled={panelMode === 'ver' || loading}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={regenerarCodigoBarras}
+                  disabled={panelMode === 'ver' || loading}
+                  className="px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Generar nuevo código"
+                >
+                  <RefreshCw size={18} />
+                </button>
+              </div>
+            </div>
+
+              <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Nombre del producto
@@ -177,6 +249,25 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
                 required
               />
             </div>
+            {/* Cantidad */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Cantidad en inventario
+              </label>
+              <input
+                type="text"
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 bg-white"
+                placeholder="Ej. 10"
+                value={cantidad}
+                onChange={handleCantidadChange}
+                disabled={panelMode === 'ver' || loading}
+                required
+              />
+            </div>
+          </div>
+          
+          
+        
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -305,6 +396,25 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
             </div>
           </div>
         )}
+
+        {/* Checkbox de principal solo en editar */}
+          {panelMode === 'editar' && (
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="esPrincipal"
+                checked={esPrincipal}
+                onChange={e => setEsPrincipal(e.target.checked)}
+                disabled={principalDeshabilitado || loading}
+              />
+              <label htmlFor="esPrincipal" className={`text-sm font-medium ${principalDeshabilitado ? 'text-gray-400' : 'text-gray-900'}`}>
+                Mostrar como producto principal (máx. 6)
+              </label>
+              {principalDeshabilitado && (
+                <span className="text-xs text-gray-400 ml-2">Ya hay 6 productos principales</span>
+              )}
+            </div>
+          )}
 
         {/* Botones de acción */}
         <div className="pt-6 border-t border-gray-50">

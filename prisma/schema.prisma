@@ -16,13 +16,15 @@ datasource db {
 
 model Producto {
   id                 Int      @id @default(autoincrement())
+  id_producto        String   @unique @map("id_producto") // Código de barras
   nombre             String
   categoria          String
   precio             Decimal  @db.Decimal(10,2)
   presentacion       String
   descripcion        String?
   beneficios         String[]
-  imagenUrl          String?  @map("imagen_url")
+  cantidad           Int      @default(0) // Cantidad en inventario
+  esPrincipal        Boolean  @default(false) @map("es_principal") // Para mostrar en landing
   fechaCreacion      DateTime @default(now()) @map("fecha_creacion")
   fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
   activo             Boolean  @default(true)

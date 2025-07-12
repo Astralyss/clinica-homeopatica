@@ -1,9 +1,9 @@
 // components/admin/ProductCard.jsx
 "use client"
 import React, { useState } from 'react'
-import { Edit, Trash2, Eye, Copy, Package, Calendar, Tag, Image as ImageIcon } from 'lucide-react'
+import { Edit, Trash2, Eye, Copy, Package, Calendar, Tag, Image as ImageIcon, Star } from 'lucide-react'
 
-function ProductCard({ product, onEdit, onDelete, onView, onDuplicate, viewMode = 'grid' }) {
+function ProductCard({ product, onEdit, onDelete, onView, onDuplicate, viewMode = 'grid', onTogglePrincipal, disablePrincipalToggle }) {
   const [imgError, setImgError] = useState(false)
 
   // Función para formatear precio
@@ -51,6 +51,27 @@ function ProductCard({ product, onEdit, onDelete, onView, onDuplicate, viewMode 
       />
     )
   }
+
+  // Botón de principal
+  const renderPrincipalButton = () => (
+    <button
+      type="button"
+      onClick={() => onTogglePrincipal(product)}
+      disabled={disablePrincipalToggle && !product.esPrincipal}
+      className={`p-2 rounded-full border transition-colors duration-200
+        ${product.esPrincipal ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-200 text-gray-400'}
+        ${disablePrincipalToggle && !product.esPrincipal ? 'opacity-50 cursor-not-allowed' : 'hover:bg-yellow-100 hover:text-yellow-500'}
+      `}
+      title={product.esPrincipal ? 'Quitar de principales' : 'Marcar como principal'}
+    >
+      <Star
+        size={18}
+        fill={product.esPrincipal ? '#2563eb' : 'none'} // azul si es principal
+        stroke={product.esPrincipal ? '#2563eb' : '#9ca3af'} // azul o gris
+        className="transition-colors duration-200"
+      />
+    </button>
+  )
 
   if (viewMode === 'list') {
     return (
@@ -143,31 +164,21 @@ function ProductCard({ product, onEdit, onDelete, onView, onDuplicate, viewMode 
           <span>{formatDate(product.fechaCreacion)}</span>
         </div>
         {/* Botones de acción */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <button 
-            onClick={() => onView(product)}
-            className="flex items-center justify-center gap-2 bg-gray-900 text-white py-3 px-4 rounded-lg hover:bg-gray-800 transition-all duration-200 text-sm font-medium hover:shadow-lg"
-          >
-            <Eye size={16} />
-            Ver
+        <div className="flex items-center gap-2">
+          {renderPrincipalButton()}
+          <button onClick={() => onView(product)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-green-600 transition-colors duration-200" title="Ver detalles">
+            <Eye size={18} />
           </button>
-          <button 
-            onClick={() => onEdit(product)}
-            className="flex items-center justify-center gap-2 bg-gray-100 text-gray-900 py-3 px-4 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium hover:shadow-md"
-          >
-            <Edit size={16} />
-            Editar
+          <button onClick={() => onEdit(product)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors duration-200" title="Editar">
+            <Edit size={18} />
           </button>
-        </div>
-        {/* Botón eliminar */}
-        <div className="flex gap-2">
-          <button 
-            onClick={() => onDelete(product)}
-            className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-all duration-200 text-sm font-medium flex items-center justify-center gap-2 hover:shadow-md"
-          >
-            <Trash2 size={14} />
-            Eliminar
+          <button onClick={() => onDelete(product)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-red-600 transition-colors duration-200" title="Eliminar">
+            <Trash2 size={18} />
           </button>
+          
+          {/* <button onClick={() => onDuplicate(product)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-yellow-500 transition-colors duration-200" title="Duplicar">
+            <Copy size={18} />
+          </button> */}
         </div>
       </div>
     </div>

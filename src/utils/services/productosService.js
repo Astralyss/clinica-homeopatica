@@ -40,6 +40,8 @@ export class ProductosService {
         data: {
           ...datosProducto,
           precio: parseFloat(datosProducto.precio),
+          cantidad: parseInt(datosProducto.cantidad) || 0,
+          esPrincipal: !!datosProducto.esPrincipal,
           imagenes: imagenes && imagenes.length > 0
             ? {
                 create: imagenes.map(img => ({ 
@@ -69,6 +71,8 @@ export class ProductosService {
         data: {
           ...datosProducto,
           precio: parseFloat(datosProducto.precio),
+          cantidad: parseInt(datosProducto.cantidad) || 0,
+          esPrincipal: !!datosProducto.esPrincipal,
           beneficios: productoData.beneficios, // sobrescribe el array
         }
       });
@@ -99,9 +103,6 @@ export class ProductosService {
           }))
         });
       }
-
-      // (Opcional) Actualizar esPrincipal si lo deseas
-      // ...
 
       // Obtener producto actualizado
       const productoActualizado = await prisma.producto.findUnique({
@@ -165,6 +166,26 @@ export class ProductosService {
     }
   }
 
+  // Obtener productos principales (para el landing)
+  static async obtenerPrincipales() {
+    try {
+      const productos = await prisma.producto.findMany({
+        where: { 
+          activo: true,
+          esPrincipal: true 
+        },
+        include: { imagenes: true },
+        orderBy: { fechaCreacion: 'desc' },
+        take: 6 // Máximo 6 productos principales
+      });
+
+      return { success: true, data: productos };
+    } catch (error) {
+      console.error('Error al obtener productos principales:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // Obtener estadísticas
   static async obtenerEstadisticas() {
     try {
@@ -177,7 +198,7 @@ export class ProductosService {
         prisma.producto.count(),
         prisma.producto.count({ where: { activo: true } }),
         prisma.producto.count({ where: { activo: false } }),
-        prisma.producto.count({ where: { activo: true } }) // Por ahora, asumimos que todos tienen stock
+        prisma.producto.count({ where: { activo: true, cantidad: { lte: 5 } } }) // Sin stock si cantidad <= 5
       ]);
 
       return {
