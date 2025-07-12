@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import { Plus, Search, Filter, Grid3X3, List, Package, SlidersHorizontal, Loader2 } from 'lucide-react'
+import { Plus, Search, Filter, Grid3X3, List, Package, SlidersHorizontal, Loader2, Boxes, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 import ProductCard from '@/components/admin/products/ProductCard'
 import { useProductos } from '@/utils/hooks/useProductos'
 import ProductSidePanel from '@/components/admin/products/ProductSidePanel'
@@ -29,6 +29,7 @@ function ProductosAdmin() {
   const [sidePanelOpen, setSidePanelOpen] = useState(false)
   const [sidePanelMode, setSidePanelMode] = useState('nuevo') // 'nuevo', 'editar', 'ver'
   const [sidePanelProducto, setSidePanelProducto] = useState(null)
+  const [selectedStatus, setSelectedStatus] = useState('total') // 'total', 'activos', 'inactivos', 'sinStock'
 
   // Obtener categorías únicas de los productos reales
   const categories = [...new Set(productos.map(p => p.categoria))]
@@ -74,8 +75,16 @@ function ProductosAdmin() {
     }
   }
 
+  // Filtrar productos por estado
+  const productosFiltradosPorEstado = productos.filter(product => {
+    if (selectedStatus === 'activos') return product.activo
+    if (selectedStatus === 'inactivos') return !product.activo
+    if (selectedStatus === 'sinStock') return product.cantidad <= 5
+    return true // total
+  })
+
   // Filtrar productos localmente para búsqueda en tiempo real
-  const filteredProducts = productos.filter(product => {
+  const filteredProducts = productosFiltradosPorEstado.filter(product => {
     const matchesSearch = product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (product.descripcion && product.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesCategory = selectedCategory === 'all' || product.categoria === selectedCategory
@@ -253,53 +262,78 @@ function ProductosAdmin() {
       {/* Stats Section */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          {/* Total */}
+          <button
+            className={`bg-white p-6 rounded-xl shadow-sm border text-left transition-all duration-200 ${selectedStatus === 'total' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-200'}`}
+            onClick={() => setSelectedStatus('total')}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Productos</p>
+                <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <Boxes className="text-blue-500" size={18} />
+                  Total Productos
+                </p>
                 <p className="text-2xl font-bold text-gray-900">{estadisticas.total}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
-                <Package className="text-blue-600" size={24} />
+                <Boxes className="text-blue-600" size={24} />
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          </button>
+          {/* Activos */}
+          <button
+            className={`bg-white p-6 rounded-xl shadow-sm border text-left transition-all duration-200 ${selectedStatus === 'activos' ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200 hover:border-green-200'}`}
+            onClick={() => setSelectedStatus('activos')}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Productos Activos</p>
+                <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <CheckCircle className="text-green-500" size={18} />
+                  Productos Activos
+                </p>
                 <p className="text-2xl font-bold text-green-600">{estadisticas.activos}</p>
               </div>
               <div className="p-3 bg-green-100 rounded-lg">
-                <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+                <CheckCircle className="text-green-600" size={24} />
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          </button>
+          {/* Inactivos */}
+          <button
+            className={`bg-white p-6 rounded-xl shadow-sm border text-left transition-all duration-200 ${selectedStatus === 'inactivos' ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200 hover:border-orange-200'}`}
+            onClick={() => setSelectedStatus('inactivos')}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Productos Inactivos</p>
+                <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <XCircle className="text-orange-500" size={18} />
+                  Productos Inactivos
+                </p>
                 <p className="text-2xl font-bold text-orange-600">{estadisticas.inactivos}</p>
               </div>
               <div className="p-3 bg-orange-100 rounded-lg">
-                <div className="w-6 h-6 bg-orange-500 rounded-full"></div>
+                <XCircle className="text-orange-500" size={24} />
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          </button>
+          {/* Sin Stock */}
+          <button
+            className={`bg-white p-6 rounded-xl shadow-sm border text-left transition-all duration-200 ${selectedStatus === 'sinStock' ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200 hover:border-red-200'}`}
+            onClick={() => setSelectedStatus('sinStock')}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Sin Stock</p>
+                <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <AlertTriangle className="text-red-500" size={18} />
+                  Sin Stock
+                </p>
                 <p className="text-2xl font-bold text-red-600">{estadisticas.sinStock}</p>
               </div>
               <div className="p-3 bg-red-100 rounded-lg">
-                <div className="w-6 h-6 bg-red-500 rounded-full"></div>
+                <AlertTriangle className="text-red-500" size={24} />
               </div>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Loading State */}

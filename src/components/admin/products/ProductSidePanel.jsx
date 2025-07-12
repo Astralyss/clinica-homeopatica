@@ -31,6 +31,7 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
   const [idProducto, setIdProducto] = useState(producto?.id_producto || '')
   const [cantidad, setCantidad] = useState(producto?.cantidad?.toString() || '')
   const [esPrincipal, setEsPrincipal] = useState(producto?.esPrincipal || false)
+  const [activo, setActivo] = useState(producto?.activo !== undefined ? producto.activo : true)
 
   // Obtener el número de productos principales (se recibe por prop o se puede pedir a la API)
   // Por simplicidad, lo recibiremos por prop: numPrincipales
@@ -78,6 +79,7 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
       setIdProducto(generarCodigoBarras())
       setCantidad('')
       setEsPrincipal(false)
+      setActivo(true)
     }
     if (open && producto && modo !== 'nuevo') {
       setNombre(producto.nombre || '')
@@ -97,6 +99,7 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
       setIdProducto(producto.id_producto || '')
       setCantidad(producto.cantidad?.toString() || '')
       setEsPrincipal(producto.esPrincipal || false)
+      setActivo(producto.activo !== undefined ? producto.activo : true)
       setError(null)
     }
   }, [open, modo, producto])
@@ -141,6 +144,7 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
         beneficios: beneficios.split(',').map(b => b.trim()).filter(Boolean),
         cantidad: cantidad === '' ? 0 : parseInt(cantidad),
         esPrincipal,
+        activo,
       }
       await onSave(data)
       onClose()
@@ -398,8 +402,9 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
         )}
 
         {/* Checkbox de principal solo en editar */}
-          {panelMode === 'editar' && (
-            <div className="flex items-center gap-2">
+        {panelMode === 'editar' && (
+          <>
+            <div className="flex items-center gap-2 mb-4">
               <input
                 type="checkbox"
                 id="esPrincipal"
@@ -414,7 +419,41 @@ export default function ProductSidePanel({ open, onClose, modo = 'nuevo', produc
                 <span className="text-xs text-gray-400 ml-2">Ya hay 6 productos principales</span>
               )}
             </div>
-          )}
+           {/* Botón para cambiar estado activo/inactivo */}
+<div className="mb-4">
+  <button
+    type="button"
+    onClick={() => setActivo(a => !a)}
+    className={`relative inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ${
+      activo 
+        ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 border border-green-600' 
+        : 'bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-300 border border-gray-300'
+    }`}
+    disabled={loading}
+  >
+    {/* Indicador de estado */}
+    <div className={`w-2 h-2 rounded-full ${activo ? 'bg-green-200' : 'bg-gray-400'}`} />
+    
+    {/* Texto principal */}
+    <span className="font-medium">
+      {activo ? 'Activo' : 'Inactivo'}
+    </span>
+    
+    {/* Texto de ayuda */}
+    <span className="text-xs opacity-75">
+      {activo ? '(Click para desactivar)' : '(Click para activar)'}
+    </span>
+    
+    {/* Spinner de loading */}
+    {loading && (
+      <div className="absolute inset-0 flex items-center justify-center bg-inherit rounded-lg">
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      </div>
+    )}
+  </button>
+</div>
+          </>
+        )}
 
         {/* Botones de acción */}
         <div className="pt-6 border-t border-gray-50">
