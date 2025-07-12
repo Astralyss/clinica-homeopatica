@@ -158,6 +158,14 @@ function ProductCard({ product, onEdit, onDelete, onView, onDuplicate, viewMode 
         </div>
         {/* Precio */}
         <p className="text-2xl font-bold text-gray-900 mb-4">{formatPrice(product.price)}</p>
+        {/* Cantidad en inventario */}
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-sm text-gray-500">Stock:</span>
+          <span className={`font-semibold text-sm ${product.cantidad <= 5 ? 'text-orange-500' : 'text-gray-800'}`}>{product.cantidad}</span>
+          {product.cantidad <= 5 && (
+            <span className="text-xs text-orange-400 ml-2">¡Pocas unidades!</span>
+          )}
+        </div>
         {/* Fecha de creación */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Calendar size={14} className="text-gray-400" />
