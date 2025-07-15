@@ -1,13 +1,62 @@
 'use client';
-import React, { useState } from 'react';
-import { ShoppingCart, Plus, Minus, Leaf, Check, Stethoscope, Shield, Award } from 'lucide-react';
-import { useProductos } from '@/utils/hooks/useProductos';
+import React, { useState, useRef } from 'react';
+import { ShoppingCart, Shield } from 'lucide-react';
+import ProductFilters from '@/components/ui/ProductFilters';
+import { useCategorias } from '@/utils/hooks/useCategorias';
+import { useBusquedaProductos } from '@/utils/hooks/useBusquedaProductos';
+// import TopBar from '@/components/ui/TopBar';
+import EcommerceNavbar from '@/components/admin/EcomerceNabvar';
+import CartPanel from '@/components/ui/CartPanel';
 
 function Farmacia() {
   const [cantidades, setCantidades] = useState({});
   const [carrito, setCarrito] = useState([]);
+  const [cartPanelOpen, setCartPanelOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
-  const { productos, loading, error } = useProductos();
+  const [inputValue, setInputValue] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const { categorias } = useCategorias();
+  const { productos, loading, error } = useBusquedaProductos({ search: searchTerm, categoria: selectedCategory });
+  const debounceRef = useRef();
+
+  // Sugerencias debounced
+  const handleInputChange = (val) => {
+    setInputValue(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val) {
+      setSuggestions([]);
+      return;
+    }
+    setLoadingSuggestions(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/productos/busqueda?search=${encodeURIComponent(val)}&categoria=${selectedCategory}`);
+        if (!res.ok) throw new Error('Error al buscar sugerencias');
+        const data = await res.json();
+        setSuggestions(data.map(p => p.nombre).slice(0, 8));
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+  };
+
+  // Buscar real solo al dar Enter o clic en buscar
+  const handleBuscar = (val) => {
+    setSearchTerm(val);
+    setSuggestions([]);
+  };
+
+  // Selección de sugerencia
+  const handleSuggestionSelect = (s) => {
+    setInputValue(s);
+    setSearchTerm(s);
+    setSuggestions([]);
+  };
 
   const actualizarCantidad = (id, nueva) => {
     setCantidades(prev => ({
@@ -18,17 +67,37 @@ function Farmacia() {
 
   const agregarAlCarrito = (producto) => {
     const cantidad = cantidades[producto.id] || 1;
-    setCarrito(prev => [...prev, { ...producto, cantidad }]);
+    setCarrito(prev => {
+      // Si ya está en el carrito, suma la cantidad
+      const idx = prev.findIndex(p => p.id === producto.id);
+      if (idx !== -1) {
+        const nuevo = [...prev];
+        nuevo[idx].cantidad += cantidad;
+        return nuevo;
+      }
+      return [...prev, { ...producto, cantidad }];
+    });
     setCantidades(prev => ({ ...prev, [producto.id]: 0 }));
   };
 
+  // Panel carrito: aumentar/disminuir/borrar
+  const handleCartAdd = (p) => {
+    setCarrito(prev => prev.map(prod => prod.id === p.id ? { ...prod, cantidad: prod.cantidad + 1 } : prod));
+  };
+  const handleCartRemove = (p) => {
+    setCarrito(prev => prev.map(prod => prod.id === p.id ? { ...prod, cantidad: Math.max(1, prod.cantidad - 1) } : prod));
+  };
+  const handleCartDelete = (p) => {
+    setCarrito(prev => prev.filter(prod => prod.id !== p.id));
+  };
+
   // FUNCIÓN  Manejo de errores de imagen
-const handleImageError = (productId) => {
-  setImageErrors(prev => ({
-    ...prev,
-    [productId]: true
-  }));
-};
+  const handleImageError = (productId) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [productId]: true
+    }));
+  };
 
   // Estados de carga y error
   if (loading) {
@@ -59,49 +128,48 @@ const handleImageError = (productId) => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Products Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-            Nuestros Productos
-          </h2>
-          <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto px-4">
-            Cada producto está cuidadosamente formulado siguiendo los principios de la homeopatía 
-            clásica y las mejores prácticas de manufactura farmacéutica.
-          </p>
-        </div>
+    <>
+      
 
-        {productos.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No hay productos disponibles en este momento.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {productos.map((producto) => (
-              <div
-                key={producto.id}
-                className="group bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-emerald-200 transition-all duration-300 flex flex-col"
-              >
-                 {/* Imagen del producto */}
-                <div className="relative overflow-hidden bg-white flex-shrink-0 p-3 sm:p-4">
-                  {imageErrors[producto.id] ? (
-                    <div className="w-full h-32 sm:h-36 lg:h-40 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center rounded-lg">
-                      <div className="text-center">
-                        <Shield size={24} className="text-emerald-400 mx-auto mb-1 sm:mb-2" />
-                        <p className="text-emerald-600 text-xs sm:text-sm font-medium">Producto</p>
-                        <p className="text-emerald-500 text-xs">Imagen no disponible</p>
-                      </div>
-                    </div>
-                  ) : (
-                    producto.imagenes && producto.imagenes[0] ? (
-                      <img
-                        src={producto.imagenes[0].url}
-                        alt={producto.nombre}
-                        className="w-full h-32 sm:h-36 lg:h-40 object-contain group-hover:scale-105 transition-transform duration-300 rounded-lg"
-                        onError={() => handleImageError(producto.id)}
-                      />
-                    ) : (
+      {/* <EcommerceNavbar /> */}
+      <CartPanel
+        open={cartPanelOpen}
+        onClose={() => setCartPanelOpen(false)}
+        productos={carrito}
+        onAdd={handleCartAdd}
+        onRemove={handleCartRemove}
+        onDelete={handleCartDelete}
+      />
+      <div className="min-h-screen bg-white pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+         
+
+          <ProductFilters
+            searchTerm={inputValue}
+            onSearchChange={handleInputChange}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            categories={categorias}
+            suggestions={suggestions}
+            loadingSuggestions={loadingSuggestions}
+            onBuscar={handleBuscar}
+            onSuggestionSelect={handleSuggestionSelect}
+          />
+
+          {productos.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No hay productos disponibles en este momento.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {productos.map((producto) => (
+                <div
+                  key={producto.id}
+                  className="group bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-emerald-200 transition-all duration-300 flex flex-col"
+                >
+                   {/* Imagen del producto */}
+                  <div className="relative overflow-hidden bg-white flex-shrink-0 p-3 sm:p-4">
+                    {imageErrors[producto.id] ? (
                       <div className="w-full h-32 sm:h-36 lg:h-40 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center rounded-lg">
                         <div className="text-center">
                           <Shield size={24} className="text-emerald-400 mx-auto mb-1 sm:mb-2" />
@@ -109,129 +177,112 @@ const handleImageError = (productId) => {
                           <p className="text-emerald-500 text-xs">Imagen no disponible</p>
                         </div>
                       </div>
-                    )
-                  )}
-                  
-                  {/* Badges */}
-                  <div className="absolute top-2 sm:top-3 lg:top-4 left-2 sm:left-3 lg:left-4">
-                    <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 sm:px-3 py-1 rounded-full">
-                      {producto.categoria}
-                    </span>
-                  </div>
-                  {/* <div className="absolute top-2 sm:top-3 lg:top-4 right-2 sm:right-3 lg:right-4">
-                    <div className="bg-white/90 backdrop-blur-sm text-emerald-700 text-xs font-medium px-2 py-1 rounded-full border border-emerald-200">
-                      <Shield size={10} className="inline mr-1" />
-                      Reg. Sanitario
+                    ) : (
+                      producto.imagenes && producto.imagenes[0] ? (
+                        <img
+                          src={producto.imagenes[0].url}
+                          alt={producto.nombre}
+                          className="w-full h-32 sm:h-36 lg:h-40 object-contain group-hover:scale-105 transition-transform duration-300 rounded-lg"
+                          onError={() => handleImageError(producto.id)}
+                        />
+                      ) : (
+                        <div className="w-full h-32 sm:h-36 lg:h-40 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center rounded-lg">
+                          <div className="text-center">
+                            <Shield size={24} className="text-emerald-400 mx-auto mb-1 sm:mb-2" />
+                            <p className="text-emerald-600 text-xs sm:text-sm font-medium">Producto</p>
+                            <p className="text-emerald-500 text-xs">Imagen no disponible</p>
+                          </div>
+                        </div>
+                      )
+                    )}
+                    {/* Badges */}
+                    <div className="absolute top-2 sm:top-3 lg:top-4 left-2 sm:left-3 lg:left-4">
+                      <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 sm:px-3 py-1 rounded-full">
+                        {producto.categoria}
+                      </span>
                     </div>
-                  </div> */}
-                </div>
-
-                {/* Contenido del producto */}
-                <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-grow">
-                  {/* Título */}
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors mb-2 line-clamp-2">
-                    {producto.nombre}
-                  </h3>
-                  
-                  {/* Descripción */}
-                  <p className="text-gray-600 text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
-                    {producto.descripcion}
-                  </p>
-
-                  {/* Presentación */}
-                  <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl mb-3 sm:mb-4">
-                    <strong>Presentación:</strong> {producto.presentacion}
                   </div>
 
-                  {/* Beneficios */}
-                  {producto.beneficios && producto.beneficios.length > 0 && (
-                    <div className="mb-4 sm:mb-6">
-                      <div className="flex flex-wrap gap-1">
-                        {producto.beneficios.slice(0, 3).map((beneficio, index) => (
-                          <span 
-                            key={index}
-                            className="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded-md whitespace-nowrap"
-                          >
-                            {beneficio}
-                          </span>
-                        ))}
-                        {producto.beneficios.length > 3 && (
-                          <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md">
-                            +{producto.beneficios.length - 3}
-                          </span>
-                        )}
-                      </div>
+                  {/* Contenido del producto */}
+                  <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-grow">
+                    {/* Título */}
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors mb-2 line-clamp-2">
+                      {producto.nombre}
+                    </h3>
+                    {/* Descripción */}
+                    <p className="text-gray-600 text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
+                      {producto.descripcion}
+                    </p>
+                    {/* Presentación */}
+                    <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl mb-3 sm:mb-4">
+                      <strong>Presentación:</strong> {producto.presentacion}
                     </div>
-                  )}
-
-                  {/* Parte inferior - se mantiene en la parte de abajo */}
-                  <div className="mt-auto">
-                    {/* Precio */}
-                    <div className="flex items-center justify-left gap-2 mb-3 sm:mb-4">
-                      <div className="text-xl sm:text-2xl font-bold text-emerald-600">
-                        ${producto.precio}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-500">MXN</div>
-                    </div>
-
-                    {/* Advertencia de poco stock */}
-                    {producto.cantidad !== undefined && producto.cantidad <= 5 && (
-                      <div className="text-xs text-red-500 font-semibold mb-2">
-                        ¡Pocas unidades disponibles!
+                    {/* Beneficios */}
+                    {producto.beneficios && producto.beneficios.length > 0 && (
+                      <div className="mb-4 sm:mb-6">
+                        <div className="flex flex-wrap gap-1">
+                          {producto.beneficios.slice(0, 3).map((beneficio, index) => (
+                            <span 
+                              key={index}
+                              className="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded-md whitespace-nowrap"
+                            >
+                              {beneficio}
+                            </span>
+                          ))}
+                          {producto.beneficios.length > 3 && (
+                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md">
+                              +{producto.beneficios.length - 3}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
-
-                    {/* Controles de cantidad */}
-                    {/* <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                      <button
-                        onClick={() => actualizarCantidad(producto.id, (cantidades[producto.id] || 1) - 1)}
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                    {/* Parte inferior - se mantiene en la parte de abajo */}
+                    <div className="mt-auto">
+                      {/* Precio */}
+                      <div className="flex items-center justify-left gap-2 mb-3 sm:mb-4">
+                        <div className="text-xl sm:text-2xl font-bold text-emerald-600">
+                          ${producto.precio}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500">MXN</div>
+                      </div>
+                      {/* Advertencia de poco stock */}
+                      {producto.cantidad !== undefined && producto.cantidad <= 5 && (
+                        <div className="text-xs text-red-500 font-semibold mb-2">
+                          ¡Pocas unidades disponibles!
+                        </div>
+                      )}
+                      {/* Botón agregar al carrito */}
+                      <button 
+                        onClick={() => agregarAlCarrito(producto)}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
                       >
-                        <Minus size={12} className="text-gray-600" />
+                        <ShoppingCart size={16} />
+                        Agregar al carrito
                       </button>
-                      
-                      <span className="min-w-[2rem] text-center font-medium text-gray-900 text-sm sm:text-base">
-                        {cantidades[producto.id] || 1}
-                      </span>
-                      
-                      <button
-                        onClick={() => actualizarCantidad(producto.id, (cantidades[producto.id] || 1) + 1)}
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                      >
-                        <Plus size={12} className="text-gray-600" />
-                      </button>
-                    </div> */}
-
-                    {/* Botón agregar al carrito */}
-                    <button 
-                      onClick={() => agregarAlCarrito(producto)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
-                    >
-                      <ShoppingCart size={16} />
-                      Agregar al carrito
-                    </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        {/* Información adicional */}
-        <div className="mt-8 sm:mt-12 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-center">
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
-            ¿Necesitas asesoría personalizada?
-          </h3>
-          <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6 max-w-2xl mx-auto px-4">
-            Nuestros especialistas en homeopatía están disponibles para brindarte 
-            recomendaciones personalizadas según tus necesidades específicas de salud.
-          </p>
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl transition-colors duration-200 text-sm sm:text-base">
-            Agendar Consulta
-          </button>
+          {/* Información adicional */}
+          <div className="mt-8 sm:mt-12 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-center">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+              ¿Necesitas asesoría personalizada?
+            </h3>
+            <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6 max-w-2xl mx-auto px-4">
+              Nuestros especialistas en homeopatía están disponibles para brindarte 
+              recomendaciones personalizadas según tus necesidades específicas de salud.
+            </p>
+            <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl transition-colors duration-200 text-sm sm:text-base">
+              Agendar Consulta
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
