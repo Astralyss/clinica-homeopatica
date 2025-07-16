@@ -8,6 +8,8 @@ import { useBusquedaProductos } from '@/utils/hooks/useBusquedaProductos';
 import EcommerceNavbar from '@/components/admin/EcomerceNabvar';
 import CartPanel from '@/components/ui/CartPanel';
 
+import StoreNavbar from '@/components/admin/StoreNavbar';
+
 function Farmacia() {
   const [cantidades, setCantidades] = useState({});
   const [carrito, setCarrito] = useState([]);
@@ -127,10 +129,24 @@ function Farmacia() {
     );
   }
 
+   const usuarioActivo = { nombre: "Invitado" };
+  const irAMisCompras = () => {};
+  
   return (
     <>
       
 
+     <StoreNavbar
+  searchTerm={inputValue}
+  onSearchChange={setInputValue}
+  categoria={selectedCategory}
+  onCategoriaChange={setSelectedCategory}
+  onBuscar={handleBuscar}
+  user={usuarioActivo}
+  onCartClick={() => setCartPanelOpen(true)}
+  onOrdersClick={irAMisCompras}
+  cartCount={carrito.length}
+/>
       {/* <EcommerceNavbar /> */}
       <CartPanel
         open={cartPanelOpen}
