@@ -131,12 +131,10 @@ function ProductosAdmin() {
     return matchesSearch && matchesCategory;
   });
 
-  // Buscar productos en el servidor cuando cambie el término de búsqueda
+  // Buscar productos en el servidor cuando cambie el término de búsqueda o la categoría
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchTerm || selectedCategory !== 'all') {
-        buscarProductos(searchTerm, selectedCategory)
-      }
+      buscarProductos(searchTerm, selectedCategory)
     }, 500)
 
     return () => clearTimeout(timeoutId)
