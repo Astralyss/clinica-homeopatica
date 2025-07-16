@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Search as SearchIcon } from 'lucide-react';
 
 function SearchBar({
   value,
@@ -61,19 +62,7 @@ function SearchBar({
 
   return (
     <div className={`relative w-full flex gap-2 items-center ${className}`}>
-      {/* Select de categorías */}
-      {categorias.length > 0 && onCategoriaChange && (
-        <select
-          value={categoria}
-          onChange={e => onCategoriaChange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white text-gray-700"
-        >
-          <option value="all">Todas</option>
-          {categorias.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-      )}
+      {/* Select de categorías (no se modifica aquí) */}
       {/* Input de búsqueda */}
       <div className="relative w-full">
         <input
@@ -82,14 +71,16 @@ function SearchBar({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 pr-10"
           autoComplete="off"
         />
         <button
           onClick={handleBuscarClick}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-sm"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg text-sm flex items-center justify-center"
+          style={{ height: 32, width: 32 }}
+          aria-label="Buscar"
         >
-          Buscar
+          <SearchIcon size={18} />
         </button>
         {loadingSuggestions && (
           <div className="absolute left-0 right-0 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow z-10 p-2 text-center text-xs text-gray-500">
