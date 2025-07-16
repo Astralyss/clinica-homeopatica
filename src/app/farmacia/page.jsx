@@ -1,11 +1,10 @@
 'use client';
 import React, { useState, useRef } from 'react';
+import Link from "next/link";
 import { ShoppingCart, Shield } from 'lucide-react';
 import ProductFilters from '@/components/ui/ProductFilters';
 import { useCategorias } from '@/utils/hooks/useCategorias';
 import { useBusquedaProductos } from '@/utils/hooks/useBusquedaProductos';
-// import TopBar from '@/components/ui/TopBar';
-import EcommerceNavbar from '@/components/admin/EcomerceNabvar';
 import CartPanel from '@/components/ui/CartPanel';
 
 import StoreNavbar from '@/components/admin/StoreNavbar';
@@ -131,7 +130,7 @@ function Farmacia() {
 
    const usuarioActivo = { nombre: "Invitado" };
   const irAMisCompras = () => {};
-  
+
   return (
     <>
       
@@ -147,7 +146,7 @@ function Farmacia() {
   onOrdersClick={irAMisCompras}
   cartCount={carrito.length}
 />
-      {/* <EcommerceNavbar /> */}
+      
       <CartPanel
         open={cartPanelOpen}
         onClose={() => setCartPanelOpen(false)}
@@ -157,10 +156,10 @@ function Farmacia() {
         onDelete={handleCartDelete}
       />
       <div className="min-h-screen bg-white pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-1">
          
 
-          <ProductFilters
+          {/* <ProductFilters
             searchTerm={inputValue}
             onSearchChange={handleInputChange}
             selectedCategory={selectedCategory}
@@ -170,7 +169,7 @@ function Farmacia() {
             loadingSuggestions={loadingSuggestions}
             onBuscar={handleBuscar}
             onSuggestionSelect={handleSuggestionSelect}
-          />
+          /> */}
 
           {productos.length === 0 ? (
             <div className="text-center py-12">
@@ -292,9 +291,12 @@ function Farmacia() {
               Nuestros especialistas en homeopatía están disponibles para brindarte 
               recomendaciones personalizadas según tus necesidades específicas de salud.
             </p>
+            <Link href="/agendarConsulta">
             <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl sm:rounded-2xl transition-colors duration-200 text-sm sm:text-base">
               Agendar Consulta
             </button>
+            </Link>
+            
           </div>
         </div>
       </div>

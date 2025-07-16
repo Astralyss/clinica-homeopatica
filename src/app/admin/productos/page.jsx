@@ -4,6 +4,8 @@ import { Plus, Search, Filter, Grid3X3, List, Package, SlidersHorizontal, Loader
 import ProductCard from '@/components/admin/products/ProductCard'
 import { useProductos } from '@/utils/hooks/useProductos'
 import ProductSidePanel from '@/components/admin/products/ProductSidePanel'
+import ProductFilters from '@/components/ui/ProductFilters'
+import { useCategorias } from '@/utils/hooks/useCategorias'
 
 
 const placeholderIMG = '/globe.svg' 
@@ -22,33 +24,19 @@ function ProductosAdmin() {
     buscarProductos
   } = useProductos()
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [viewMode, setViewMode] = useState('grid')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [showFilters, setShowFilters] = useState(false)
-  const [sidePanelOpen, setSidePanelOpen] = useState(false)
-  const [sidePanelMode, setSidePanelMode] = useState('nuevo') // 'nuevo', 'editar', 'ver'
-  const [sidePanelProducto, setSidePanelProducto] = useState(null)
-  const [selectedStatus, setSelectedStatus] = useState('total') // 'total', 'activos', 'inactivos', 'sinStock'
+  // Restaurar lógica de productos principales
+  const productosPrincipales = productos.filter(p => p.esPrincipal);
+  const numPrincipales = productosPrincipales.length;
+  const maxPrincipales = 6;
 
-  // Obtener categorías únicas de los productos reales
-  const categories = [...new Set(productos.map(p => p.categoria))]
-
-  // Contar productos principales
-  const productosPrincipales = productos.filter(p => p.esPrincipal)
-  const numPrincipales = productosPrincipales.length
-  const maxPrincipales = 6
-
-  // Función para marcar/desmarcar como principal
+  // Restaurar función para marcar/desmarcar como principal
   const handleTogglePrincipal = async (product) => {
-    const nuevoEstado = !product.esPrincipal
-    
+    const nuevoEstado = !product.esPrincipal;
     // Si está intentando marcar como principal y ya hay 6, no permitir
     if (nuevoEstado && numPrincipales >= maxPrincipales) {
-      alert('Ya hay 6 productos principales. Desmarca uno para poder marcar otro.')
-      return
+      alert('Ya hay 6 productos principales. Desmarca uno para poder marcar otro.');
+      return;
     }
-
     try {
       const resultado = await actualizarProducto(product.id, {
         nombre: product.nombre,
@@ -62,34 +50,86 @@ function ProductosAdmin() {
         esPrincipal: nuevoEstado,
         activo: product.activo,
         imagenes: product.imagenes || []
-      })
-      
+      });
       if (resultado.success) {
-        console.log(`Producto ${nuevoEstado ? 'marcado' : 'desmarcado'} como principal`)
+        console.log(`Producto ${nuevoEstado ? 'marcado' : 'desmarcado'} como principal`);
       } else {
-        alert('Error al actualizar el producto: ' + resultado.error)
+        alert('Error al actualizar el producto: ' + resultado.error);
       }
     } catch (error) {
-      console.error('Error al cambiar estado principal:', error)
-      alert('Error al actualizar el producto')
+      console.error('Error al cambiar estado principal:', error);
+      alert('Error al actualizar el producto');
     }
-  }
+  };
+
+  // NUEVO: hooks para categorías y sugerencias
+  const { categorias } = useCategorias();
+  const [inputValue, setInputValue] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sidePanelOpen, setSidePanelOpen] = useState(false);
+  const [sidePanelMode, setSidePanelMode] = useState('nuevo'); // 'nuevo', 'editar', 'ver'
+  const [sidePanelProducto, setSidePanelProducto] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState('total'); // 'total', 'activos', 'inactivos', 'sinStock'
+
+  // Sugerencias debounced (igual que farmacia)
+  const debounceRef = React.useRef();
+  const handleInputChange = (val) => {
+    setInputValue(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!val) {
+      setSuggestions([]);
+      return;
+    }
+    setLoadingSuggestions(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/productos/busqueda?search=${encodeURIComponent(val)}&categoria=${selectedCategory}`);
+        if (!res.ok) throw new Error('Error al buscar sugerencias');
+        const data = await res.json();
+        setSuggestions(data.map(p => p.nombre).slice(0, 8));
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+  };
+
+  // Buscar real solo al dar Enter o clic en buscar
+  const handleBuscar = (val) => {
+    setSearchTerm(val);
+    setSuggestions([]);
+    buscarProductos(val, selectedCategory);
+  };
+
+  // Selección de sugerencia
+  const handleSuggestionSelect = (s) => {
+    setInputValue(s);
+    setSearchTerm(s);
+    setSuggestions([]);
+    buscarProductos(s, selectedCategory);
+  };
 
   // Filtrar productos por estado
   const productosFiltradosPorEstado = productos.filter(product => {
-    if (selectedStatus === 'activos') return product.activo
-    if (selectedStatus === 'inactivos') return !product.activo
-    if (selectedStatus === 'sinStock') return product.cantidad <= 5
-    return true // total
-  })
+    if (selectedStatus === 'activos') return product.activo;
+    if (selectedStatus === 'inactivos') return !product.activo;
+    if (selectedStatus === 'sinStock') return product.cantidad <= 5;
+    return true; // total
+  });
 
   // Filtrar productos localmente para búsqueda en tiempo real
   const filteredProducts = productosFiltradosPorEstado.filter(product => {
     const matchesSearch = product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (product.descripcion && product.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesCategory = selectedCategory === 'all' || product.categoria === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+                         (product.descripcion && product.descripcion.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = selectedCategory === 'all' || product.categoria === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   // Buscar productos en el servidor cuando cambie el término de búsqueda
   useEffect(() => {
@@ -182,35 +222,23 @@ function ProductosAdmin() {
       {/* Controls Section */}
       <div className="bg-white border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search and Filters */}
-            <div className="flex flex-1 gap-3 max-w-xl">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Buscar productos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                />
-              </div>
-              
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg transition-all duration-200 ${
-                  showFilters 
-                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <SlidersHorizontal size={18} />
-                Filtros
-              </button>
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between w-full">
+            {/* NUEVO: Barra de búsqueda y categorías tipo farmacia */}
+            <div className="flex-1 min-w-0 mt-9">
+              <ProductFilters
+                searchTerm={inputValue}
+                onSearchChange={handleInputChange}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                categories={categorias}
+                suggestions={suggestions}
+                loadingSuggestions={loadingSuggestions}
+                onBuscar={handleBuscar}
+                onSuggestionSelect={handleSuggestionSelect}
+              />
             </div>
-
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+            {/* View Mode Toggle alineado verticalmente */}
+            <div className="flex items-center h-[56px] md:h-auto gap-2 bg-gray-100 p-1 rounded-lg self-center md:self-auto">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-md transition-all duration-200 ${
@@ -218,6 +246,7 @@ function ProductosAdmin() {
                     ? 'bg-white text-blue-600 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
+                aria-label="Vista de cuadrícula"
               >
                 <Grid3X3 size={18} />
               </button>
@@ -228,34 +257,12 @@ function ProductosAdmin() {
                     ? 'bg-white text-blue-600 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
+                aria-label="Vista de lista"
               >
                 <List size={18} />
               </button>
             </div>
           </div>
-
-          {/* Expandable Filters */}
-          {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                  <Filter size={16} className="text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700">Categoría:</span>
-                </div>
-                
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="all">Todas las categorías</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
