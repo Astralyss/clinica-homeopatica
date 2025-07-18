@@ -182,25 +182,10 @@ function Farmacia() {
                   key={producto.id}
                   className="group bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-emerald-200 transition-all duration-300 flex flex-col"
                 >
-                   {/* Imagen del producto */}
-                  <div className="relative overflow-hidden bg-white flex-shrink-0 p-3 sm:p-4">
-                    {imageErrors[producto.id] ? (
-                      <div className="w-full h-32 sm:h-36 lg:h-40 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center rounded-lg">
-                        <div className="text-center">
-                          <Shield size={24} className="text-emerald-400 mx-auto mb-1 sm:mb-2" />
-                          <p className="text-emerald-600 text-xs sm:text-sm font-medium">Producto</p>
-                          <p className="text-emerald-500 text-xs">Imagen no disponible</p>
-                        </div>
-                      </div>
-                    ) : (
-                      producto.imagenes && producto.imagenes[0] ? (
-                        <img
-                          src={producto.imagenes[0].url}
-                          alt={producto.nombre}
-                          className="w-full h-32 sm:h-36 lg:h-40 object-contain group-hover:scale-105 transition-transform duration-300 rounded-lg"
-                          onError={() => handleImageError(producto.id)}
-                        />
-                      ) : (
+                  <Link href={`/farmacia/producto/${producto.id}`} className="block flex-1 h-full" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    {/* Imagen del producto */}
+                    <div className="relative overflow-hidden bg-white flex-shrink-0 p-3 sm:p-4">
+                      {imageErrors[producto.id] ? (
                         <div className="w-full h-32 sm:h-36 lg:h-40 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center rounded-lg">
                           <div className="text-center">
                             <Shield size={24} className="text-emerald-400 mx-auto mb-1 sm:mb-2" />
@@ -208,74 +193,93 @@ function Farmacia() {
                             <p className="text-emerald-500 text-xs">Imagen no disponible</p>
                           </div>
                         </div>
-                      )
-                    )}
-                    {/* Badges */}
-                    <div className="absolute top-2 sm:top-3 lg:top-4 left-2 sm:left-3 lg:left-4">
-                      <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 sm:px-3 py-1 rounded-full">
-                        {producto.categoria}
-                      </span>
+                      ) : (
+                        producto.imagenes && producto.imagenes[0] ? (
+                          <img
+                            src={producto.imagenes[0].url}
+                            alt={producto.nombre}
+                            className="w-full h-32 sm:h-36 lg:h-40 object-contain group-hover:scale-105 transition-transform duration-300 rounded-lg"
+                            onError={() => handleImageError(producto.id)}
+                          />
+                        ) : (
+                          <div className="w-full h-32 sm:h-36 lg:h-40 bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center rounded-lg">
+                            <div className="text-center">
+                              <Shield size={24} className="text-emerald-400 mx-auto mb-1 sm:mb-2" />
+                              <p className="text-emerald-600 text-xs sm:text-sm font-medium">Producto</p>
+                              <p className="text-emerald-500 text-xs">Imagen no disponible</p>
+                            </div>
+                          </div>
+                        )
+                      )}
+                      {/* Badges */}
+                      <div className="absolute top-2 sm:top-3 lg:top-4 left-2 sm:left-3 lg:left-4">
+                        <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 sm:px-3 py-1 rounded-full">
+                          {producto.categoria}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Contenido del producto */}
-                  <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-grow">
-                    {/* Título */}
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors mb-2 line-clamp-2">
-                      {producto.nombre}
-                    </h3>
-                    {/* Descripción */}
-                    <p className="text-gray-600 text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
-                      {producto.descripcion}
-                    </p>
-                    {/* Presentación */}
-                    <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl mb-3 sm:mb-4">
-                      <strong>Presentación:</strong> {producto.presentacion}
-                    </div>
-                    {/* Beneficios */}
-                    {producto.beneficios && producto.beneficios.length > 0 && (
-                      <div className="mb-4 sm:mb-6">
-                        <div className="flex flex-wrap gap-1">
-                          {producto.beneficios.slice(0, 3).map((beneficio, index) => (
-                            <span 
-                              key={index}
-                              className="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded-md whitespace-nowrap"
-                            >
-                              {beneficio}
-                            </span>
-                          ))}
-                          {producto.beneficios.length > 3 && (
-                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md">
-                              +{producto.beneficios.length - 3}
-                            </span>
-                          )}
-                        </div>
+                    {/* Contenido del producto */}
+                    <div className="p-4 sm:p-5 lg:p-6 flex flex-col flex-grow">
+                      {/* Título */}
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors mb-2 line-clamp-2">
+                        {producto.nombre}
+                      </h3>
+                      {/* Descripción */}
+                      <p className="text-gray-600 text-sm leading-relaxed mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
+                        {producto.descripcion}
+                      </p>
+                      {/* Presentación */}
+                      <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2 sm:p-3 rounded-lg sm:rounded-xl mb-3 sm:mb-4">
+                        <strong>Presentación:</strong> {producto.presentacion}
                       </div>
-                    )}
-                    {/* Parte inferior - se mantiene en la parte de abajo */}
-                    <div className="mt-auto">
-                      {/* Precio */}
-                      <div className="flex items-center justify-left gap-2 mb-3 sm:mb-4">
-                        <div className="text-xl sm:text-2xl font-bold text-emerald-600">
-                          ${producto.precio}
-                        </div>
-                        <div className="text-xs sm:text-sm text-gray-500">MXN</div>
-                      </div>
-                      {/* Advertencia de poco stock */}
-                      {producto.cantidad !== undefined && producto.cantidad <= 5 && (
-                        <div className="text-xs text-red-500 font-semibold mb-2">
-                          ¡Pocas unidades disponibles!
+                      {/* Beneficios */}
+                      {producto.beneficios && producto.beneficios.length > 0 && (
+                        <div className="mb-4 sm:mb-6">
+                          <div className="flex flex-wrap gap-1">
+                            {producto.beneficios.slice(0, 3).map((beneficio, index) => (
+                              <span 
+                                key={index}
+                                className="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded-md whitespace-nowrap"
+                              >
+                                {beneficio}
+                              </span>
+                            ))}
+                            {producto.beneficios.length > 3 && (
+                              <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md">
+                                +{producto.beneficios.length - 3}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
-                      {/* Botón agregar al carrito */}
-                      <button 
-                        onClick={() => agregarAlCarrito(producto)}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
-                      >
-                        <ShoppingCart size={16} />
-                        Agregar al carrito
-                      </button>
+                      {/* Parte inferior - se mantiene en la parte de abajo */}
+                      <div className="mt-auto">
+                        {/* Precio */}
+                        <div className="flex items-center justify-left gap-2 mb-3 sm:mb-4">
+                          <div className="text-xl sm:text-2xl font-bold text-emerald-600">
+                            ${producto.precio}
+                          </div>
+                          <div className="text-xs sm:text-sm text-gray-500">MXN</div>
+                        </div>
+                        {/* Advertencia de poco stock */}
+                        {producto.cantidad !== undefined && producto.cantidad <= 5 && (
+                          <div className="text-xs text-red-500 font-semibold mb-2">
+                            ¡Pocas unidades disponibles!
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  </Link>
+                  {/* Botón agregar al carrito */}
+                  <div className="p-4 pt-0">
+                    <button 
+                      onClick={() => agregarAlCarrito(producto)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 sm:py-3 px-4 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
+                    >
+                      <ShoppingCart size={16} />
+                      Agregar al carrito
+                    </button>
                   </div>
                 </div>
               ))}

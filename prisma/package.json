@@ -1,0 +1,13 @@
+{
+  "name": "prisma-seed",
+  "version": "1.0.0",
+  "description": "Seed script for Prisma database",
+  "main": "seed.js",
+  "scripts": {
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.11.1",
+    "bcryptjs": "^2.4.3"
+  }
+} 

@@ -14,6 +14,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===== TABLAS EXISTENTES =====
 model Producto {
   id                 Int      @id @default(autoincrement())
   id_producto        String   @unique @map("id_producto") // Código de barras
@@ -29,6 +30,10 @@ model Producto {
   fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
   activo             Boolean  @default(true)
   imagenes           ImagenProducto[]
+  
+  // Relaciones con nuevas tablas
+  itemsCarrito       ItemCarrito[]
+  itemsCompra        ItemCompra[]
 }
 
 model ImagenProducto {
@@ -37,4 +42,237 @@ model ImagenProducto {
   esPrincipal Boolean @default(false)
   producto   Producto @relation(fields: [productoId], references: [id])
   productoId Int
+}
+
+// ===== NUEVAS TABLAS PARA SISTEMA DE USUARIOS Y COMPRAS =====
+
+// Tabla de roles para administradores
+model Rol {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique // 'admin', 'cliente', 'vendedor'
+  descripcion String?
+  usuarios    Usuario[]
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+}
+
+// Tabla principal de usuarios
+model Usuario {
+  id                Int      @id @default(autoincrement())
+  id_usuario        String   @unique @map("id_usuario") // UUID o código único
+  email             String   @unique
+  password          String   // Hash de la contraseña
+  nombre            String
+  apellidoPaterno   String   @map("apellido_paterno")
+  apellidoMaterno   String?  @map("apellido_materno")
+  telefono          String?
+  fechaNacimiento   DateTime? @map("fecha_nacimiento")
+  genero            String?  // 'M', 'F', 'O'
+  activo            Boolean  @default(true)
+  emailVerificado   Boolean  @default(false) @map("email_verificado")
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
+  ultimoAcceso      DateTime? @map("ultimo_acceso")
+  
+  // Relaciones
+  rolId             Int      @default(2) // 1=admin, 2=cliente por defecto
+  rol               Rol      @relation(fields: [rolId], references: [id])
+  direcciones       Direccion[]
+  carritos          Carrito[]
+  compras           Compra[]
+  pagos             Pago[]
+  consultas         Consulta[]
+  
+  @@map("usuarios")
+}
+
+// Direcciones de envío
+model Direccion {
+  id                Int      @id @default(autoincrement())
+  usuarioId         Int      @map("usuario_id")
+  tipo              String   @default("casa") // 'casa', 'trabajo', 'otro'
+  nombre            String   // Nombre de la dirección
+  calle             String
+  numeroExterior    String?  @map("numero_exterior")
+  numeroInterior    String?  @map("numero_interior")
+  colonia           String
+  ciudad            String
+  estado            String
+  codigoPostal      String   @map("codigo_postal")
+  pais              String   @default("México")
+  referencias       String?  // Referencias adicionales
+  esPrincipal       Boolean  @default(false) @map("es_principal")
+  activo            Boolean  @default(true)
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  
+  // Relaciones
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  envios            Envio[]
+  compras           Compra[]
+  
+  @@map("direcciones")
+}
+
+// Carrito de compras
+model Carrito {
+  id                Int      @id @default(autoincrement())
+  usuarioId         Int      @map("usuario_id")
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
+  activo            Boolean  @default(true)
+  
+  // Relaciones
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  items             ItemCarrito[]
+  compra            Compra?
+  
+  @@map("carritos")
+}
+
+// Items del carrito
+model ItemCarrito {
+  id                Int      @id @default(autoincrement())
+  carritoId         Int      @map("carrito_id")
+  productoId        Int      @map("producto_id")
+  cantidad          Int      @default(1)
+  precioUnitario    Decimal  @db.Decimal(10,2) @map("precio_unitario")
+  fechaAgregado     DateTime @default(now()) @map("fecha_agregado")
+  
+  // Relaciones
+  carrito           Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  producto          Producto @relation(fields: [productoId], references: [id])
+  
+  @@map("items_carrito")
+}
+
+// Compras/Órdenes
+model Compra {
+  id                Int      @id @default(autoincrement())
+  numeroOrden       String   @unique @map("numero_orden") // ORD-2024-001
+  usuarioId         Int      @map("usuario_id")
+  carritoId         Int      @unique @map("carrito_id")
+  direccionId       Int      @map("direccion_id")
+  
+  // Totales
+  subtotal          Decimal  @db.Decimal(10,2)
+  descuento         Decimal  @db.Decimal(10,2) @default(0)
+  impuestos         Decimal  @db.Decimal(10,2) @default(0)
+  costoEnvio        Decimal  @db.Decimal(10,2) @default(0)
+  total             Decimal  @db.Decimal(10,2)
+  
+  // Estados
+  estado            String   @default("pendiente") // 'pendiente', 'confirmada', 'en_proceso', 'enviada', 'entregada', 'cancelada'
+  fechaCompra       DateTime @default(now()) @map("fecha_compra")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
+  
+  // Notas
+  notas             String?
+  
+  // Relaciones
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id])
+  carrito           Carrito  @relation(fields: [carritoId], references: [id])
+  direccion         Direccion @relation(fields: [direccionId], references: [id])
+  items             ItemCompra[]
+  pagos             Pago[]
+  envios            Envio[]
+  
+  @@map("compras")
+}
+
+// Items de la compra (snapshot del carrito al momento de comprar)
+model ItemCompra {
+  id                Int      @id @default(autoincrement())
+  compraId          Int      @map("compra_id")
+  productoId        Int      @map("producto_id")
+  cantidad          Int
+  precioUnitario    Decimal  @db.Decimal(10,2) @map("precio_unitario")
+  subtotal          Decimal  @db.Decimal(10,2)
+  
+  // Relaciones
+  compra            Compra   @relation(fields: [compraId], references: [id], onDelete: Cascade)
+  producto          Producto @relation(fields: [productoId], references: [id])
+  
+  @@map("items_compra")
+}
+
+// Pagos
+model Pago {
+  id                Int      @id @default(autoincrement())
+  compraId          Int      @map("compra_id")
+  usuarioId         Int      @map("usuario_id")
+  
+  // Información del pago
+  metodoPago        String   @map("metodo_pago") // 'tarjeta', 'paypal', 'transferencia'
+  monto             Decimal  @db.Decimal(10,2)
+  moneda            String   @default("MXN")
+  
+  // Estados
+  estado            String   @default("pendiente") // 'pendiente', 'procesando', 'completado', 'fallido', 'reembolsado'
+  
+  // Información de Stripe
+  stripePaymentIntentId String? @map("stripe_payment_intent_id")
+  stripeCustomerId   String? @map("stripe_customer_id")
+  
+  // Fechas
+  fechaPago         DateTime? @map("fecha_pago")
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
+  
+  // Relaciones
+  compra            Compra   @relation(fields: [compraId], references: [id])
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  @@map("pagos")
+}
+
+// Envíos
+model Envio {
+  id                Int      @id @default(autoincrement())
+  compraId          Int      @map("compra_id")
+  direccionId       Int      @map("direccion_id")
+  
+  // Información del envío
+  metodoEnvio       String   @map("metodo_envio") // 'estandar', 'express', 'sucursal'
+  costo             Decimal  @db.Decimal(10,2)
+  peso              Decimal? @db.Decimal(8,2) // en kg
+  dimensiones       String?  // "LxAxH en cm"
+  
+  // Tracking
+  numeroGuia        String?  @map("numero_guia")
+  empresaEnvio      String?  @map("empresa_envio") // 'fedex', 'dhl', 'estafeta'
+  
+  // Estados
+  estado            String   @default("pendiente") // 'pendiente', 'enviado', 'en_transito', 'entregado'
+  fechaEnvio        DateTime? @map("fecha_envio")
+  fechaEntrega      DateTime? @map("fecha_entrega")
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
+  
+  // Notas
+  notas             String?
+  
+  // Relaciones
+  compra            Compra   @relation(fields: [compraId], references: [id])
+  direccion         Direccion @relation(fields: [direccionId], references: [id])
+  
+  @@map("envios")
+}
+
+// Consultas médicas (ya existía en tu proyecto)
+model Consulta {
+  id                Int      @id @default(autoincrement())
+  usuarioId         Int      @map("usuario_id")
+  nombre            String
+  apellido          String
+  email             String
+  telefono          String
+  fechaConsulta     DateTime @map("fecha_consulta")
+  horaConsulta      String   @map("hora_consulta")
+  estado            String   @default("pendiente") // 'pendiente', 'confirmada', 'completada', 'cancelada'
+  notas             String?
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  
+  // Relaciones
+  usuario           Usuario? @relation(fields: [usuarioId], references: [id])
+  
+  @@map("consultas")
 }

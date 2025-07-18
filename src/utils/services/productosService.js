@@ -2,6 +2,23 @@ import { PrismaClient } from '@/generated/prisma';
 
 const prisma = new PrismaClient();
 
+export async function getProductoById(id) {
+  // Permitir buscar por id numérico o id_producto (código)
+  let where = {};
+  if (!isNaN(Number(id))) {
+    where = { id: Number(id) };
+  } else {
+    where = { id_producto: id };
+  }
+  const producto = await prisma.producto.findUnique({
+    where,
+    include: {
+      imagenes: true
+    }
+  });
+  return producto;
+}
+
 export class ProductosService {
   // Obtener todos los productos
   static async obtenerTodos() {
