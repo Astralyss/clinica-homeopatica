@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
-import { AuthService } from '@/utils/auth/authService';
+import { jwtVerify } from 'jose';
+
+async function verificarTokenEdge(token) {
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'tu-secreto-jwt-super-seguro');
+    const { payload } = await jwtVerify(token, secret);
+    return { success: true, payload };
+  } catch (error) {
+    return { success: false };
+  }
+}
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -18,8 +28,8 @@ export async function middleware(request) {
     }
 
     try {
-      // Verificar token
-      const resultado = await AuthService.verificarToken(token);
+      // Verificar token con jose (Edge compatible)
+      const resultado = await verificarTokenEdge(token);
 
       if (!resultado.success) {
         // Token inválido, redirigir a login
@@ -28,11 +38,9 @@ export async function middleware(request) {
         return response;
       }
 
-      // Para rutas de admin, verificar si es administrador
+      // Para rutas de admin, verificar si es administrador usando el rol del JWT
       if (pathname.startsWith('/admin')) {
-        const esAdmin = await AuthService.esAdmin(resultado.usuario.id);
-        
-        if (!esAdmin) {
+        if (resultado.payload.rol !== 'admin') {
           // No es admin, redirigir a página principal
           return NextResponse.redirect(new URL('/', request.url));
         }
@@ -56,13 +64,6 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }; 

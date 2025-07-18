@@ -59,8 +59,8 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        setUser(data.usuario);
-        return { success: true };
+        await verificarAutenticacion();
+        return { success: true, usuario: data.usuario };
       } else {
         setError(data.error);
         return { success: false, error: data.error };

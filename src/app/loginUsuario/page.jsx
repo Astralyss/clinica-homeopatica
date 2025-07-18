@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/utils/hooks/useAuth';
 
@@ -9,7 +9,17 @@ export default function LoginUsuarioPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  useEffect(() => {
+    if (success && user) {
+      if (user.rol === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/farmacia');
+      }
+    }
+  }, [success, user, router]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,13 +34,6 @@ export default function LoginUsuarioPage() {
       const result = await login(form.email, form.password);
       if (result.success) {
         setSuccess('¡Inicio de sesión exitoso!');
-        setTimeout(() => {
-          if (result.usuario?.rol === 'admin' || result.isAdmin) {
-            router.push('/admin');
-          } else {
-            router.push('/farmacia');
-          }
-        }, 1200);
       } else {
         setError(result.error || 'Error al iniciar sesión');
       }
