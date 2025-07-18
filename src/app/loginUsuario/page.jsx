@@ -21,23 +21,18 @@ export default function LoginUsuarioPage() {
     setError('');
     setSuccess('');
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      const data = await res.json();
-      if (data.success) {
+      const result = await login(form.email, form.password);
+      if (result.success) {
         setSuccess('¡Inicio de sesión exitoso!');
         setTimeout(() => {
-          if (data.usuario?.rol === 'admin') {
+          if (result.usuario?.rol === 'admin' || result.isAdmin) {
             router.push('/admin');
           } else {
             router.push('/farmacia');
           }
         }, 1200);
       } else {
-        setError(data.error || 'Error al iniciar sesión');
+        setError(result.error || 'Error al iniciar sesión');
       }
     } catch (err) {
       setError('Error de red');
