@@ -65,7 +65,7 @@ export default function RegistroForm() {
 
       {/* Container principal responsivo */}
       <div className="relative w-full max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-screen lg:min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start min-h-screen lg:min-h-0">
           
           {/* Sección izquierda - Información (solo desktop) */}
           <div className="hidden lg:flex flex-col justify-center space-y-8 px-8 xl:px-16">
