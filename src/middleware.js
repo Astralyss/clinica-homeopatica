@@ -14,7 +14,7 @@ export async function middleware(request) {
 
     if (!token) {
       // Redirigir a login si no hay token
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL('/loginUsuario', request.url));
     }
 
     try {
@@ -23,7 +23,7 @@ export async function middleware(request) {
 
       if (!resultado.success) {
         // Token inválido, redirigir a login
-        const response = NextResponse.redirect(new URL('/login', request.url));
+        const response = NextResponse.redirect(new URL('/loginUsuario', request.url));
         response.cookies.set('auth-token', '', { maxAge: 0 });
         return response;
       }
@@ -44,7 +44,7 @@ export async function middleware(request) {
     } catch (error) {
       console.error('Error en middleware:', error);
       // Error al verificar token, redirigir a login
-      const response = NextResponse.redirect(new URL('/login', request.url));
+      const response = NextResponse.redirect(new URL('/loginUsuario', request.url));
       response.cookies.set('auth-token', '', { maxAge: 0 });
       return response;
     }

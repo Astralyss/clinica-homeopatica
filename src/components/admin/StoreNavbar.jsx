@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import SearchBar from '../ui/SearchBar';
 import { ShoppingCart, User, Package, Menu, Tag, ChevronDown } from 'lucide-react';
 import { useCategorias } from '../../utils/hooks/useCategorias';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/utils/hooks/useAuth';
 
 function StoreNavbar({
   searchTerm,
@@ -17,6 +19,18 @@ function StoreNavbar({
 }) {
   const { categorias } = useCategorias();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutMsg, setLogoutMsg] = useState('');
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    setLogoutMsg('Sesión cerrada correctamente');
+    setTimeout(() => {
+      setLogoutMsg('');
+      router.push('/');
+    }, 1500);
+  };
 
   // Obtener el texto a mostrar
   const categoriaLabel = categoria === 'all' ? 'Todas las categorías' : categoria;
@@ -24,6 +38,11 @@ function StoreNavbar({
 
   return (
     <nav className="w-full bg-white border-b border-gray-100 shadow-md px-2 py-2 flex items-center justify-between sticky top-0 z-40">
+      {logoutMsg && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-100 text-green-800 px-4 py-2 rounded shadow z-50">
+          {logoutMsg}
+        </div>
+      )}
       {/* Buscador y select: responsivo */}
       <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-2xl mx-1">
         <div className="flex flex-row gap-2 w-full">
@@ -63,23 +82,40 @@ function StoreNavbar({
       {/* Botones de usuario/carrito/compras: desktop y móvil */}
       {/* Desktop: visible, móvil: oculto */}
       <div className="hidden sm:flex items-center gap-4 ml-6">
-        <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-          <User size={20} className="text-emerald-600" />
-          <span className="hidden sm:inline text-gray-700 font-medium">{user?.nombre || 'Mi cuenta'}</span>
-        </button>
-        <button onClick={onOrdersClick} className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-          <Package size={20} className="text-emerald-600" />
-          <span className="hidden sm:inline text-gray-700 font-medium">Mis compras</span>
-        </button>
-        <button onClick={onCartClick} className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-          <ShoppingCart size={20} className="text-emerald-600" />
-          <span className="hidden sm:inline text-gray-700 font-medium">Carrito</span>
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-              {cartCount}
-            </span>
-          )}
-        </button>
+        {user ? (
+          <>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <User size={20} className="text-emerald-600" />
+              <span className="hidden sm:inline text-gray-700 font-medium">{user?.nombre || 'Mi cuenta'}</span>
+            </button>
+            <button onClick={onOrdersClick} className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <Package size={20} className="text-emerald-600" />
+              <span className="hidden sm:inline text-gray-700 font-medium">Mis compras</span>
+            </button>
+            <button onClick={onCartClick} className="relative flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <ShoppingCart size={20} className="text-emerald-600" />
+              <span className="hidden sm:inline text-gray-700 font-medium">Carrito</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+            <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors border border-red-200 ml-2">
+              <span className="text-red-600 font-medium">Cerrar sesión</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => router.push('/loginUsuario')} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <User size={20} className="text-emerald-600" />
+              <span className="hidden sm:inline text-gray-700 font-medium">Iniciar sesión</span>
+            </button>
+            <button onClick={() => router.push('/registroUsuario')} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-emerald-50 transition-colors border border-emerald-600">
+              <span className="text-emerald-600 font-medium">Registrarse</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Móvil: menú hamburguesa */}
@@ -90,23 +126,40 @@ function StoreNavbar({
         {/* Menú desplegable */}
         {menuOpen && (
           <div className="absolute top-16 right-4 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48 animate-fade-in flex flex-col">
-            <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => setMenuOpen(false)}>
-              <User size={20} className="text-emerald-600" />
-              <span className="text-gray-700 font-medium">{user?.nombre || 'Mi cuenta'}</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => { onOrdersClick(); setMenuOpen(false); }}>
-              <Package size={20} className="text-emerald-600" />
-              <span className="text-gray-700 font-medium">Mis compras</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left relative" onClick={() => { onCartClick(); setMenuOpen(false); }}>
-              <ShoppingCart size={20} className="text-emerald-600" />
-              <span className="text-gray-700 font-medium">Carrito</span>
-              {cartCount > 0 && (
-                <span className="absolute right-4 top-2 bg-emerald-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            {user ? (
+              <>
+                <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => setMenuOpen(false)}>
+                  <User size={20} className="text-emerald-600" />
+                  <span className="text-gray-700 font-medium">{user?.nombre || 'Mi cuenta'}</span>
+                </button>
+                <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => { onOrdersClick(); setMenuOpen(false); }}>
+                  <Package size={20} className="text-emerald-600" />
+                  <span className="text-gray-700 font-medium">Mis compras</span>
+                </button>
+                <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left relative" onClick={() => { onCartClick(); setMenuOpen(false); }}>
+                  <ShoppingCart size={20} className="text-emerald-600" />
+                  <span className="text-gray-700 font-medium">Carrito</span>
+                  {cartCount > 0 && (
+                    <span className="absolute right-4 top-2 bg-emerald-600 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+                <button onClick={async () => { await handleLogout(); setMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 hover:bg-red-50 transition-colors w-full text-left border-t border-red-100">
+                  <span className="text-red-600 font-medium">Cerrar sesión</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => { router.push('/loginUsuario'); setMenuOpen(false); }}>
+                  <User size={20} className="text-emerald-600" />
+                  <span className="text-gray-700 font-medium">Iniciar sesión</span>
+                </button>
+                <button className="flex items-center gap-2 px-4 py-3 hover:bg-emerald-50 transition-colors w-full text-left border-t border-emerald-100" onClick={() => { router.push('/registroUsuario'); setMenuOpen(false); }}>
+                  <span className="text-emerald-600 font-medium">Registrarse</span>
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

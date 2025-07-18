@@ -5,6 +5,7 @@ import PharmaSecction from "@/components/landing/PharmaSecction";
 import History from "@/components/landing/History";
 import AboutUs from "@/components/landing/AboutUs";
 import HeroSection from "@/components/landing/HeroSection";
+import RegistroForm from '../components/auth/RegistroForm';
 // import ConsultForm from "@/components/forms/ConsultForm";
 
 export default function Home() {
@@ -95,6 +96,7 @@ export default function Home() {
       <PharmaSecction />
       <History />
       <AboutUs />
+      {/* Eliminar <RegistroForm /> de la página principal */}
 
 
 

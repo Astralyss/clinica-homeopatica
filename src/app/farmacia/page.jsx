@@ -6,6 +6,7 @@ import ProductFilters from '@/components/ui/ProductFilters';
 import { useCategorias } from '@/utils/hooks/useCategorias';
 import { useBusquedaProductos } from '@/utils/hooks/useBusquedaProductos';
 import CartPanel from '@/components/ui/CartPanel';
+import { useAuth } from '@/utils/hooks/useAuth';
 
 import StoreNavbar from '@/components/admin/StoreNavbar';
 
@@ -22,6 +23,7 @@ function Farmacia() {
   const { categorias } = useCategorias();
   const { productos, loading, error } = useBusquedaProductos({ search: searchTerm, categoria: selectedCategory });
   const debounceRef = useRef();
+  const { user } = useAuth();
 
   // Sugerencias debounced
   const handleInputChange = (val) => {
@@ -128,8 +130,7 @@ function Farmacia() {
     );
   }
 
-   const usuarioActivo = { nombre: "Invitado" };
-  const irAMisCompras = () => {};
+   const irAMisCompras = () => {};
 
   return (
     <>
@@ -141,7 +142,7 @@ function Farmacia() {
   categoria={selectedCategory}
   onCategoriaChange={setSelectedCategory}
   onBuscar={handleBuscar}
-  user={usuarioActivo}
+  user={user}
   onCartClick={() => setCartPanelOpen(true)}
   onOrdersClick={irAMisCompras}
   cartCount={carrito.length}

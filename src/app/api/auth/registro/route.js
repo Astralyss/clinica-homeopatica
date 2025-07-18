@@ -9,7 +9,7 @@ export async function POST(request) {
     // Validaciones básicas
     if (!email || !password || !nombre || !apellidoPaterno) {
       return NextResponse.json(
-        { success: false, error: 'Faltan campos requeridos' },
+        { success: false, error: 'Faltan campos requeridos: nombre, apellido paterno, email y contraseña' },
         { status: 400 }
       );
     }
