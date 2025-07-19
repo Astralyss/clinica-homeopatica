@@ -15,6 +15,9 @@ function AgendarConsulta() {
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [focusedField, setFocusedField] = useState('');
+  const [verificandoDisponibilidad, setVerificandoDisponibilidad] = useState(false);
+  const [disponibilidad, setDisponibilidad] = useState({});
+  const [loading, setLoading] = useState(false);
 
   // Horarios disponibles
   const horariosDisponibles = [
@@ -86,14 +89,77 @@ function AgendarConsulta() {
     if (!formData.fechaSeleccionada) newErrors.fechaSeleccionada = 'Selecciona una fecha';
     if (!formData.horaSeleccionada) newErrors.horaSeleccionada = 'Selecciona una hora';
 
+    // Verificar disponibilidad antes de enviar
+    if (formData.fechaSeleccionada && formData.horaSeleccionada) {
+      if (disponibilidad.disponible === false) {
+        newErrors.disponibilidad = 'El horario seleccionado no está disponible';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  // Verificar disponibilidad de horario
+  const verificarDisponibilidad = async (fecha, hora) => {
+    if (!fecha || !hora) return;
+    
+    try {
+      setVerificandoDisponibilidad(true);
+      const response = await fetch(`/api/consultas/disponibilidad?fecha=${fecha}&hora=${hora}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setDisponibilidad({
+          disponible: data.disponible,
+          fecha,
+          hora
+        });
+      } else {
+        console.error('Error al verificar disponibilidad:', data.error);
+        setDisponibilidad({
+          disponible: false,
+          error: data.error
+        });
+      }
+    } catch (error) {
+      console.error('Error al verificar disponibilidad:', error);
+      setDisponibilidad({
+        disponible: false,
+        error: 'Error de conexión'
+      });
+    } finally {
+      setVerificandoDisponibilidad(false);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (validateForm()) {
-      setIsSubmitted(true);
-      console.log('Datos de la cita:', formData);
+      setLoading(true);
+      try {
+        const response = await fetch('/api/consultas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setIsSubmitted(true);
+          console.log('Consulta creada exitosamente:', data);
+        } else {
+          console.error('Error al crear consulta:', data.error);
+          alert('Error al agendar la consulta: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error al enviar formulario:', error);
+        alert('Error al agendar la consulta. Por favor, intenta nuevamente.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -350,11 +416,16 @@ function AgendarConsulta() {
                 <div className="relative">
                   <select
                     value={formData.fechaSeleccionada}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      fechaSeleccionada: e.target.value,
-                      horaSeleccionada: '' 
-                    }))}
+                    onChange={(e) => {
+                      const nuevaFecha = e.target.value;
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        fechaSeleccionada: nuevaFecha,
+                        horaSeleccionada: '' 
+                      }));
+                      // Limpiar disponibilidad al cambiar fecha
+                      setDisponibilidad({});
+                    }}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white transition-all duration-200 appearance-none cursor-pointer hover:bg-slate-100"
                   >
                     <option value="">Selecciona una fecha</option>
@@ -393,7 +464,14 @@ function AgendarConsulta() {
                 <div className="relative">
                   <select
                     value={formData.horaSeleccionada}
-                    onChange={(e) => setFormData(prev => ({ ...prev, horaSeleccionada: e.target.value }))}
+                    onChange={(e) => {
+                      const nuevaHora = e.target.value;
+                      setFormData(prev => ({ ...prev, horaSeleccionada: nuevaHora }));
+                      // Verificar disponibilidad cuando se selecciona hora
+                      if (nuevaHora && formData.fechaSeleccionada) {
+                        verificarDisponibilidad(formData.fechaSeleccionada, nuevaHora);
+                      }
+                    }}
                     disabled={!formData.fechaSeleccionada}
                     className={`w-full px-4 py-3 border rounded-lg text-sm font-medium transition-all duration-200 appearance-none cursor-pointer ${
                       !formData.fechaSeleccionada
@@ -424,6 +502,35 @@ function AgendarConsulta() {
                     <p className="text-red-600 text-xs">{errors.horaSeleccionada}</p>
                   </div>
                 )}
+
+                {errors.disponibilidad && (
+                  <div className="flex items-center space-x-2 mt-2">
+                    <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                    <p className="text-red-600 text-xs">{errors.disponibilidad}</p>
+                  </div>
+                )}
+
+                {/* Indicador de disponibilidad */}
+                {formData.horaSeleccionada && formData.fechaSeleccionada && (
+                  <div className="mt-2">
+                    {verificandoDisponibilidad ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <p className="text-blue-600 text-xs">Verificando disponibilidad...</p>
+                      </div>
+                    ) : disponibilidad.disponible === true ? (
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <p className="text-green-600 text-xs">Horario disponible</p>
+                      </div>
+                    ) : disponibilidad.disponible === false ? (
+                      <div className="flex items-center space-x-2">
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        <p className="text-red-600 text-xs">Horario no disponible</p>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -431,14 +538,43 @@ function AgendarConsulta() {
 
         {/* Resumen */}
         {formData.fechaSeleccionada && formData.horaSeleccionada && (
-          <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 border-2 border-emerald-300 rounded-2xl p-6 shadow-lg animate-fade-in">
-            <h3 className="text-xl font-bold text-emerald-800 mb-3 flex items-center">
-              <CheckCircle className="mr-2 h-6 w-6" />
+          <div className={`border-2 rounded-2xl p-6 shadow-lg animate-fade-in ${
+            disponibilidad.disponible === true 
+              ? 'bg-gradient-to-r from-emerald-100 to-emerald-200 border-emerald-300' 
+              : disponibilidad.disponible === false
+                ? 'bg-gradient-to-r from-red-100 to-red-200 border-red-300'
+                : 'bg-gradient-to-r from-blue-100 to-blue-200 border-blue-300'
+          }`}>
+            <h3 className={`text-xl font-bold mb-3 flex items-center ${
+              disponibilidad.disponible === true 
+                ? 'text-emerald-800' 
+                : disponibilidad.disponible === false
+                  ? 'text-red-800'
+                  : 'text-blue-800'
+            }`}>
+              {disponibilidad.disponible === true ? (
+                <CheckCircle className="mr-2 h-6 w-6" />
+              ) : disponibilidad.disponible === false ? (
+                <XCircle className="mr-2 h-6 w-6" />
+              ) : (
+                <AlertCircle className="mr-2 h-6 w-6" />
+              )}
               Resumen de tu cita
             </h3>
-            <p className="text-emerald-700 text-lg">
+            <p className={`text-lg ${
+              disponibilidad.disponible === true 
+                ? 'text-emerald-700' 
+                : disponibilidad.disponible === false
+                  ? 'text-red-700'
+                  : 'text-blue-700'
+            }`}>
               <span className="font-semibold">{formatDate(new Date(formData.fechaSeleccionada))}</span> a las <span className="font-semibold">{formData.horaSeleccionada}</span>
             </p>
+            {disponibilidad.disponible === false && (
+              <p className="text-red-700 text-sm mt-2">
+                ⚠️ Este horario no está disponible. Por favor selecciona otro horario.
+              </p>
+            )}
           </div>
         )}
 
@@ -458,9 +594,21 @@ function AgendarConsulta() {
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg hover:from-emerald-700 hover:to-emerald-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+            disabled={loading || disponibilidad.disponible === false || verificandoDisponibilidad}
+            className={`flex-1 px-6 py-3 rounded-lg transition-all duration-200 font-medium shadow-lg ${
+              loading || disponibilidad.disponible === false || verificandoDisponibilidad
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-xl'
+            }`}
           >
-            Confirmar mi Cita
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Agendando...
+              </div>
+            ) : (
+              'Confirmar mi Cita'
+            )}
           </button>
         </div>
       </div>
