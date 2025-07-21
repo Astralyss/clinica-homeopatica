@@ -383,6 +383,19 @@ const ConsultasAdminPanel = () => {
                         >
                           <Edit className="h-4 w-4" />
                         </button>
+                        {/* Botón para marcar como completada */}
+                        {(consulta.estado === 'pendiente' || consulta.estado === 'confirmada') && (
+                          <button
+                            onClick={async () => {
+                              await actualizarConsulta(consulta.id, { estado: 'completada' });
+                              cargarEstadisticas();
+                            }}
+                            className="text-emerald-600 hover:text-emerald-900 p-1 rounded"
+                            title="Marcar como completada"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => cancelarConsulta(consulta.id)}
                           className="text-red-600 hover:text-red-900 p-1 rounded"
