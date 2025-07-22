@@ -124,10 +124,11 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE - Eliminar una consulta (marcar como cancelada)
+// DELETE - Eliminar una consulta (marcar como cancelada o eliminar permanentemente)
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
+    const body = await request.json().catch(() => ({}));
     
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json(
@@ -136,23 +137,36 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    // En lugar de eliminar, marcamos como cancelada
-    const resultado = await consultasService.actualizarEstadoConsulta(
-      id,
-      'cancelada',
-      'Consulta cancelada por el administrador'
-    );
-    
-    if (resultado.success) {
-      return NextResponse.json({
-        message: 'Consulta cancelada exitosamente',
-        data: resultado.data
-      });
+    // Si se solicita eliminación permanente
+    if (body.eliminar) {
+      const resultado = await consultasService.eliminarConsulta(id);
+      
+      if (resultado.success) {
+        return NextResponse.json({
+          message: 'Consulta eliminada permanentemente',
+          data: resultado.data
+        });
+      } else {
+        return NextResponse.json(
+          { error: resultado.error },
+          { status: 500 }
+        );
+      }
     } else {
-      return NextResponse.json(
-        { error: resultado.error },
-        { status: 500 }
-      );
+      // Cancelar consulta y liberar horario
+      const resultado = await consultasService.cancelarConsulta(id);
+      
+      if (resultado.success) {
+        return NextResponse.json({
+          message: 'Consulta cancelada exitosamente',
+          data: resultado.data
+        });
+      } else {
+        return NextResponse.json(
+          { error: resultado.error },
+          { status: 500 }
+        );
+      }
     }
   } catch (error) {
     console.error('Error en DELETE /api/consultas/[id]:', error);

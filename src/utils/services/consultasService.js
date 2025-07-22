@@ -1,5 +1,6 @@
 // Servicio para manejar las consultas médicas
 import { PrismaClient } from '../../generated/prisma';
+import { HorariosService } from './horariosService';
 
 const prisma = new PrismaClient();
 
@@ -7,6 +8,17 @@ export const consultasService = {
   // Crear una nueva consulta
   async crearConsulta(datosConsulta) {
     try {
+      // Verificar disponibilidad del horario
+      const verificacion = await HorariosService.verificarDisponibilidad(
+        datosConsulta.fechaSeleccionada,
+        datosConsulta.horaSeleccionada
+      );
+
+      if (!verificacion.disponible) {
+        return { success: false, error: verificacion.motivo };
+      }
+
+      // Crear la consulta
       const consulta = await prisma.consulta.create({
         data: {
           nombre: datosConsulta.nombre,
@@ -20,6 +32,13 @@ export const consultasService = {
           notas: datosConsulta.notas || null
         }
       });
+
+      // Reservar el horario
+      await HorariosService.reservarHorario(
+        datosConsulta.fechaSeleccionada,
+        datosConsulta.horaSeleccionada,
+        consulta.id
+      );
       
       return { success: true, data: consulta };
     } catch (error) {
@@ -117,6 +136,45 @@ export const consultasService = {
     }
   },
 
+  // Cancelar una consulta y liberar el horario
+  async cancelarConsulta(id) {
+    try {
+      // Liberar el horario primero
+      await HorariosService.liberarHorario(parseInt(id));
+      
+      // Actualizar el estado de la consulta
+      const consulta = await prisma.consulta.update({
+        where: { id: parseInt(id) },
+        data: {
+          estado: 'cancelada'
+        }
+      });
+      
+      return { success: true, data: consulta };
+    } catch (error) {
+      console.error('Error al cancelar consulta:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Eliminar una consulta permanentemente
+  async eliminarConsulta(id) {
+    try {
+      // Liberar el horario primero
+      await HorariosService.liberarHorario(parseInt(id));
+      
+      // Eliminar la consulta permanentemente
+      const consulta = await prisma.consulta.delete({
+        where: { id: parseInt(id) }
+      });
+      
+      return { success: true, data: consulta };
+    } catch (error) {
+      console.error('Error al eliminar consulta:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Obtener estadísticas de consultas
   async obtenerEstadisticasConsultas() {
     try {
@@ -170,18 +228,12 @@ export const consultasService = {
   // Verificar disponibilidad de horario
   async verificarDisponibilidad(fecha, hora) {
     try {
-      const consultasExistentes = await prisma.consulta.count({
-        where: {
-          fechaConsulta: new Date(fecha),
-          horaConsulta: hora,
-          estado: {
-            in: ['pendiente', 'confirmada']
-          }
-        }
-      });
-      
-      // Consideramos que hay disponibilidad si hay menos de 2 consultas en ese horario
-      return { success: true, disponible: consultasExistentes < 2 };
+      const verificacion = await HorariosService.verificarDisponibilidad(fecha, hora);
+      return { 
+        success: true, 
+        disponible: verificacion.disponible,
+        motivo: verificacion.motivo
+      };
     } catch (error) {
       console.error('Error al verificar disponibilidad:', error);
       return { success: false, error: error.message };

@@ -273,6 +273,41 @@ model Consulta {
   
   // Relaciones
   usuario           Usuario? @relation(fields: [usuarioId], references: [id])
+  horarioDisponible HorarioDisponible? @relation(fields: [horarioDisponibleId], references: [id])
+  horarioDisponibleId Int? @unique @map("horario_disponible_id")
   
   @@map("consultas")
+}
+
+// ===== NUEVAS TABLAS PARA GESTIÓN DE HORARIOS =====
+
+// Horarios base disponibles (11 AM a 7 PM)
+model Horario {
+  id                Int      @id @default(autoincrement())
+  hora              String   @unique // "11:00", "12:00", "13:00", etc.
+  horaFormato       String   @map("hora_formato") // "11:00 AM", "12:00 PM", etc.
+  activo            Boolean  @default(true)
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  
+  // Relaciones
+  horariosDisponibles HorarioDisponible[]
+  
+  @@map("horarios")
+}
+
+// Disponibilidad de horarios por fecha
+model HorarioDisponible {
+  id                Int      @id @default(autoincrement())
+  fecha             DateTime @db.Date // Solo la fecha, sin hora
+  horarioId         Int      @map("horario_id")
+  disponible        Boolean  @default(true)
+  fechaCreacion     DateTime @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
+  
+  // Relaciones
+  horario           Horario  @relation(fields: [horarioId], references: [id])
+  consulta          Consulta?
+  
+  @@unique([fecha, horarioId]) // Una combinación única de fecha y horario
+  @@map("horarios_disponibles")
 }

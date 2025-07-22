@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from 'react';
-import { Calendar, Clock, User, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, User, Mail, Phone, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { useHorariosDisponibles } from '../../utils/hooks/useHorariosDisponibles';
 
 function AgendarConsulta() {
   const [formData, setFormData] = useState({
@@ -19,13 +20,15 @@ function AgendarConsulta() {
   const [disponibilidad, setDisponibilidad] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Horarios disponibles
-  const horariosDisponibles = [
-    '09:00', '10:00', '11:00', '12:00',
-    '15:00', '16:00', '17:00', '18:00'
-  ];
+  // Hook para manejar horarios disponibles
+  const { 
+    horariosDisponibles, 
+    loading: loadingHorarios, 
+    error: errorHorarios,
+    obtenerHorariosDisponibles 
+  } = useHorariosDisponibles();
 
-  // Generar fechas disponibles (próximos 21 días, excluyendo fines de semana)
+  // Generar fechas disponibles (próximos 30 días, excluyendo fines de semana)
   const getFechasDisponibles = () => {
     const fechas = [];
     const hoy = new Date();
@@ -37,12 +40,19 @@ function AgendarConsulta() {
       if (fecha.getDay() !== 0 && fecha.getDay() !== 6) {
         fechas.push(fecha);
       }
-      if (fechas.length >= 15) break; // Limitar a 15 fechas
+      if (fechas.length >= 21) break; // Limitar a 21 fechas
     }
     return fechas;
   };
 
   const fechasDisponibles = getFechasDisponibles();
+
+  // Cargar horarios disponibles cuando se selecciona una fecha
+  useEffect(() => {
+    if (formData.fechaSeleccionada) {
+      obtenerHorariosDisponibles(formData.fechaSeleccionada);
+    }
+  }, [formData.fechaSeleccionada]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -93,6 +103,12 @@ function AgendarConsulta() {
     if (formData.fechaSeleccionada && formData.horaSeleccionada) {
       if (disponibilidad.disponible === false) {
         newErrors.disponibilidad = 'El horario seleccionado no está disponible';
+      } else if (disponibilidad.disponible === undefined) {
+        // Si no se ha verificado la disponibilidad, verificar ahora
+        const horarioDisponible = horariosDisponibles.find(h => h.hora === formData.horaSeleccionada);
+        if (!horarioDisponible) {
+          newErrors.disponibilidad = 'El horario seleccionado no está disponible';
+        }
       }
     }
 
@@ -106,20 +122,20 @@ function AgendarConsulta() {
     
     try {
       setVerificandoDisponibilidad(true);
-      const response = await fetch(`/api/consultas/disponibilidad?fecha=${fecha}&hora=${hora}`);
-      const data = await response.json();
       
-      if (response.ok) {
+      // Verificar si el horario está en la lista de disponibles
+      const horarioDisponible = horariosDisponibles.find(h => h.hora === hora);
+      
+      if (horarioDisponible) {
         setDisponibilidad({
-          disponible: data.disponible,
+          disponible: true,
           fecha,
           hora
         });
       } else {
-        console.error('Error al verificar disponibilidad:', data.error);
         setDisponibilidad({
           disponible: false,
-          error: data.error
+          error: 'Horario no disponible'
         });
       }
     } catch (error) {
@@ -135,6 +151,17 @@ function AgendarConsulta() {
 
   const handleSubmit = async () => {
     if (validateForm()) {
+      // Verificación adicional de disponibilidad
+      if (formData.fechaSeleccionada && formData.horaSeleccionada) {
+        const horarioDisponible = horariosDisponibles.find(h => h.hora === formData.horaSeleccionada);
+        if (!horarioDisponible) {
+          alert('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
+          setFormData(prev => ({ ...prev, horaSeleccionada: '' }));
+          setDisponibilidad({});
+          return;
+        }
+      }
+
       setLoading(true);
       try {
         const response = await fetch('/api/consultas', {
@@ -152,7 +179,18 @@ function AgendarConsulta() {
           console.log('Consulta creada exitosamente:', data);
         } else {
           console.error('Error al crear consulta:', data.error);
-          alert('Error al agendar la consulta: ' + data.error);
+          // Mostrar el error de forma más amigable
+          const errorMessage = data.error || 'Error desconocido al agendar la consulta';
+          
+          // Si es un error de disponibilidad, mostrar mensaje específico
+          if (response.status === 409) {
+            alert('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
+            // Limpiar la selección de hora para que el usuario elija otra
+            setFormData(prev => ({ ...prev, horaSeleccionada: '' }));
+            setDisponibilidad({});
+          } else {
+            alert('Error al agendar la consulta: ' + errorMessage);
+          }
         }
       } catch (error) {
         console.error('Error al enviar formulario:', error);
@@ -164,6 +202,30 @@ function AgendarConsulta() {
   };
 
   const formatDate = (date) => {
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  // Función para formatear fecha de forma más robusta
+  const formatDateFromString = (dateString) => {
+    if (!dateString) return '';
+    
+    // Buscar la fecha correspondiente en fechasDisponibles para usar el mismo formato
+    const fechaEncontrada = fechasDisponibles.find(fecha => 
+      fecha.toISOString().split('T')[0] === dateString
+    );
+    
+    if (fechaEncontrada) {
+      return formatDate(fechaEncontrada);
+    }
+    
+    // Fallback: crear fecha usando UTC para evitar problemas de zona horaria
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    
     return date.toLocaleDateString('es-ES', {
       weekday: 'short',
       day: 'numeric',
@@ -185,7 +247,7 @@ function AgendarConsulta() {
               <span className="font-medium text-emerald-700">Paciente:</span> {formData.nombre} {formData.apellido}
             </p>
             <p className="text-slate-700 mb-1">
-              <span className="font-medium text-emerald-700">Fecha:</span> {formatDate(new Date(formData.fechaSeleccionada))}
+              <span className="font-medium text-emerald-700">Fecha:</span> {formatDateFromString(formData.fechaSeleccionada)}
             </p>
             <p className="text-slate-700 mb-1">
               <span className="font-medium text-emerald-700">Hora:</span> {formData.horaSeleccionada}
@@ -418,6 +480,8 @@ function AgendarConsulta() {
                     value={formData.fechaSeleccionada}
                     onChange={(e) => {
                       const nuevaFecha = e.target.value;
+                      console.log('Fecha seleccionada:', nuevaFecha); // Debug
+                      console.log('Fecha formateada:', formatDateFromString(nuevaFecha)); // Debug
                       setFormData(prev => ({ 
                         ...prev, 
                         fechaSeleccionada: nuevaFecha,
@@ -429,11 +493,14 @@ function AgendarConsulta() {
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:bg-white transition-all duration-200 appearance-none cursor-pointer hover:bg-slate-100"
                   >
                     <option value="">Selecciona una fecha</option>
-                    {fechasDisponibles.map((fecha, index) => (
-                      <option key={index} value={fecha.toISOString().split('T')[0]}>
-                        {formatDate(fecha)}
-                      </option>
-                    ))}
+                    {fechasDisponibles.map((fecha, index) => {
+                      const fechaString = fecha.toISOString().split('T')[0];
+                      return (
+                        <option key={index} value={fechaString}>
+                          {formatDate(fecha)}
+                        </option>
+                      );
+                    })}
                   </select>
                   
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -482,11 +549,17 @@ function AgendarConsulta() {
                     <option value="">
                       {!formData.fechaSeleccionada ? 'Primero selecciona una fecha' : 'Selecciona una hora'}
                     </option>
-                    {formData.fechaSeleccionada && horariosDisponibles.map((hora) => (
-                      <option key={hora} value={hora}>
-                        {hora}
+                    {formData.fechaSeleccionada && !loadingHorarios && horariosDisponibles.map((horario) => (
+                      <option key={horario.hora} value={horario.hora}>
+                        {horario.horaFormato}
                       </option>
                     ))}
+                    {formData.fechaSeleccionada && loadingHorarios && (
+                      <option value="" disabled>Cargando horarios...</option>
+                    )}
+                    {formData.fechaSeleccionada && !loadingHorarios && horariosDisponibles.length === 0 && (
+                      <option value="" disabled>No hay horarios disponibles</option>
+                    )}
                   </select>
                   
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -568,7 +641,7 @@ function AgendarConsulta() {
                   ? 'text-red-700'
                   : 'text-blue-700'
             }`}>
-              <span className="font-semibold">{formatDate(new Date(formData.fechaSeleccionada))}</span> a las <span className="font-semibold">{formData.horaSeleccionada}</span>
+              <span className="font-semibold">{formatDateFromString(formData.fechaSeleccionada)}</span> a las <span className="font-semibold">{formData.horaSeleccionada}</span>
             </p>
             {disponibilidad.disponible === false && (
               <p className="text-red-700 text-sm mt-2">
@@ -594,9 +667,9 @@ function AgendarConsulta() {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || disponibilidad.disponible === false || verificandoDisponibilidad}
+            disabled={loading || disponibilidad.disponible === false || verificandoDisponibilidad || !formData.horaSeleccionada}
             className={`flex-1 px-6 py-3 rounded-lg transition-all duration-200 font-medium shadow-lg ${
-              loading || disponibilidad.disponible === false || verificandoDisponibilidad
+              loading || disponibilidad.disponible === false || verificandoDisponibilidad || !formData.horaSeleccionada
                 ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                 : 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 hover:shadow-xl'
             }`}
