@@ -38,7 +38,7 @@ export default function RegistroForm() {
         setSuccess('¡Registro exitoso!');
         setForm({ nombre: '', apellidoPaterno: '', apellidoMaterno: '', email: '', password: '', telefono: '' });
         setTimeout(() => {
-          router.push('/login');
+          router.push('/loginUsuario');
         }, 2000);
       } else {
         setError(data.error || 'Error al registrar');

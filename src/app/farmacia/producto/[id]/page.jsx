@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { use } from "react";
+import { useCarrito } from '@/utils/hooks/useCarrito';
 
 // Utilidad para obtener producto por ID (puedes reemplazar por fetch real)
 async function fetchProducto(id) {
@@ -20,6 +21,7 @@ export default function ProductoPage({ params }) {
   const [cantidad, setCantidad] = useState(1);
   const router = useRouter();
   const [imagenPrincipal, setImagenPrincipal] = useState(null);
+  const { agregarProducto } = useCarrito();
 
   useEffect(() => {
     setLoading(true);
@@ -66,16 +68,23 @@ export default function ProductoPage({ params }) {
   const formatPrice = (price) =>
     new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(price);
 
-  // Agregar al carrito (placeholder)
+  // Agregar al carrito
   const handleAgregarCarrito = () => {
-    // Aquí iría la lógica real
+    agregarProducto(producto, cantidad);
     alert(`Agregado ${cantidad} unidad(es) de ${producto.nombre} al carrito`);
   };
 
-  // Comprar ahora (placeholder)
+  // Comprar ahora
   const handleComprarAhora = () => {
-    // Aquí iría la lógica real
-    alert(`Comprar ahora: ${cantidad} unidad(es) de ${producto.nombre}`);
+    // Limpiar carrito y agregar solo este producto
+    const productoParaComprar = {
+      ...producto,
+      cantidad: cantidad
+    };
+    localStorage.setItem('carrito', JSON.stringify([productoParaComprar]));
+    
+    // Navegar al carrito
+    router.push('/farmacia/carrito');
   };
 
   return (

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from "next/link";
 import { ShoppingCart, Shield } from 'lucide-react';
 import ProductFilters from '@/components/ui/ProductFilters';
@@ -7,12 +7,19 @@ import { useCategorias } from '@/utils/hooks/useCategorias';
 import { useBusquedaProductos } from '@/utils/hooks/useBusquedaProductos';
 import CartPanel from '@/components/ui/CartPanel';
 import { useAuth } from '@/utils/hooks/useAuth';
+import { useCarrito } from '@/utils/hooks/useCarrito';
 
 import StoreNavbar from '@/components/admin/StoreNavbar';
 
 function Farmacia() {
   const [cantidades, setCantidades] = useState({});
-  const [carrito, setCarrito] = useState([]);
+  const { 
+    carrito, 
+    agregarProducto, 
+    actualizarCantidad, 
+    eliminarProducto, 
+    obtenerCantidadTotal 
+  } = useCarrito();
   const [cartPanelOpen, setCartPanelOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
   const [inputValue, setInputValue] = useState('');
@@ -61,7 +68,7 @@ function Farmacia() {
     setSuggestions([]);
   };
 
-  const actualizarCantidad = (id, nueva) => {
+  const actualizarCantidadInput = (id, nueva) => {
     setCantidades(prev => ({
       ...prev,
       [id]: Math.max(0, nueva)
@@ -70,28 +77,19 @@ function Farmacia() {
 
   const agregarAlCarrito = (producto) => {
     const cantidad = cantidades[producto.id] || 1;
-    setCarrito(prev => {
-      // Si ya está en el carrito, suma la cantidad
-      const idx = prev.findIndex(p => p.id === producto.id);
-      if (idx !== -1) {
-        const nuevo = [...prev];
-        nuevo[idx].cantidad += cantidad;
-        return nuevo;
-      }
-      return [...prev, { ...producto, cantidad }];
-    });
+    agregarProducto(producto, cantidad);
     setCantidades(prev => ({ ...prev, [producto.id]: 0 }));
   };
 
   // Panel carrito: aumentar/disminuir/borrar
   const handleCartAdd = (p) => {
-    setCarrito(prev => prev.map(prod => prod.id === p.id ? { ...prod, cantidad: prod.cantidad + 1 } : prod));
+    actualizarCantidad(p.id, p.cantidad + 1);
   };
   const handleCartRemove = (p) => {
-    setCarrito(prev => prev.map(prod => prod.id === p.id ? { ...prod, cantidad: Math.max(1, prod.cantidad - 1) } : prod));
+    actualizarCantidad(p.id, Math.max(1, p.cantidad - 1));
   };
   const handleCartDelete = (p) => {
-    setCarrito(prev => prev.filter(prod => prod.id !== p.id));
+    eliminarProducto(p.id);
   };
 
   // FUNCIÓN  Manejo de errores de imagen
@@ -145,7 +143,7 @@ function Farmacia() {
   user={user}
   onCartClick={() => setCartPanelOpen(true)}
   onOrdersClick={irAMisCompras}
-  cartCount={carrito.length}
+  cartCount={obtenerCantidadTotal()}
 />
       
       <CartPanel
