@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { use } from "react";
-import { useCarrito } from '@/utils/hooks/useCarrito';
+import { useCarrito } from '@/utils/context/CarritoContext';
 
 // Utilidad para obtener producto por ID (puedes reemplazar por fetch real)
 async function fetchProducto(id) {

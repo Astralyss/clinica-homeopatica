@@ -15,7 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '@/utils/hooks/useAuth';
-import { useCarrito } from '@/utils/hooks/useCarrito';
+import { useCarrito } from '@/utils/context/CarritoContext';
 
 export default function CarritoPage() {
   const router = useRouter();
@@ -88,15 +88,20 @@ export default function CarritoPage() {
     const itemsSeleccionados = carrito.filter(item => selectedItems.has(item.id));
     if (itemsSeleccionados.length === 0) return;
     
-    // Aquí iría la lógica de compra
-    alert(`Comprando ${itemsSeleccionados.length} productos seleccionados`);
+    // Guardar solo los productos seleccionados en el carrito
+    localStorage.setItem('carrito', JSON.stringify(itemsSeleccionados));
+    
+    router.push('/farmacia/checkout');
   };
 
   const comprarTodo = () => {
     if (carrito.length === 0) return;
     
-    // Aquí iría la lógica de compra
-    alert(`Comprando todos los productos del carrito`);
+    // Asegurar que el carrito esté guardado en localStorage antes de navegar
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    
+    // Navegar al checkout con todos los productos
+    router.push('/farmacia/checkout');
   };
 
   const continuarComprando = () => {

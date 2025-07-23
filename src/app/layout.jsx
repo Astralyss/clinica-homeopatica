@@ -3,6 +3,7 @@ import { Roboto } from 'next/font/google'
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { AuthProvider } from '@/utils/hooks/useAuth';
+import { CarritoProvider } from '@/utils/context/CarritoContext';
 
 export const metadata = {
   title: "Clinica Homeopática",
@@ -22,9 +23,11 @@ export default function RootLayout({ children }) {
     <html lang="en" className={roboto.className}>
       <body className={` antialiased`} >
         <AuthProvider>
-          <Navbar/>
-          {children}
-          <Footer />
+          <CarritoProvider>
+            <Navbar/>
+            {children}
+            <Footer />
+          </CarritoProvider>
         </AuthProvider>
       </body>
     </html>

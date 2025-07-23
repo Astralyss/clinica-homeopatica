@@ -1,16 +1,30 @@
-import { useState, useEffect } from 'react';
+"use client";
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export function useCarrito() {
+const CarritoContext = createContext();
+
+export function CarritoProvider({ children }) {
   const [carrito, setCarrito] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Cargar carrito desde localStorage al montar
   useEffect(() => {
-    const carritoGuardado = localStorage.getItem('carrito');
-    if (carritoGuardado) {
-      setCarrito(JSON.parse(carritoGuardado));
+    try {
+      const carritoGuardado = localStorage.getItem('carrito');
+      
+      if (carritoGuardado) {
+        const carritoParseado = JSON.parse(carritoGuardado);
+        const carritoFinal = Array.isArray(carritoParseado) ? carritoParseado : [];
+        setCarrito(carritoFinal);
+      } else {
+        setCarrito([]);
+      }
+    } catch (error) {
+      console.error('Error al cargar carrito desde localStorage:', error);
+      setCarrito([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   // Guardar carrito en localStorage cuando cambie
@@ -79,7 +93,7 @@ export function useCarrito() {
     return item ? item.cantidad : 0;
   };
 
-  return {
+  const value = {
     carrito,
     loading,
     agregarProducto,
@@ -92,4 +106,18 @@ export function useCarrito() {
     obtenerCantidadProducto,
     setCarrito
   };
+
+  return (
+    <CarritoContext.Provider value={value}>
+      {children}
+    </CarritoContext.Provider>
+  );
+}
+
+export function useCarrito() {
+  const context = useContext(CarritoContext);
+  if (!context) {
+    throw new Error('useCarrito debe ser usado dentro de un CarritoProvider');
+  }
+  return context;
 } 

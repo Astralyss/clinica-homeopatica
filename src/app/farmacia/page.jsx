@@ -1,17 +1,19 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, Shield } from 'lucide-react';
 import ProductFilters from '@/components/ui/ProductFilters';
 import { useCategorias } from '@/utils/hooks/useCategorias';
 import { useBusquedaProductos } from '@/utils/hooks/useBusquedaProductos';
 import CartPanel from '@/components/ui/CartPanel';
 import { useAuth } from '@/utils/hooks/useAuth';
-import { useCarrito } from '@/utils/hooks/useCarrito';
+import { useCarrito } from '@/utils/context/CarritoContext';
 
 import StoreNavbar from '@/components/admin/StoreNavbar';
 
 function Farmacia() {
+  const router = useRouter();
   const [cantidades, setCantidades] = useState({});
   const { 
     carrito, 
@@ -128,7 +130,9 @@ function Farmacia() {
     );
   }
 
-   const irAMisCompras = () => {};
+   const irAMisCompras = () => {
+     router.push('/farmacia/mis-compras');
+   };
 
   return (
     <>
