@@ -12,6 +12,7 @@ function StoreNavbar({
   user,
   onCartClick,
   onOrdersClick,
+  onProfileClick,
   cartCount = 0,
   categoria,
   onCategoriaChange,
@@ -84,7 +85,7 @@ function StoreNavbar({
       <div className="hidden sm:flex items-center gap-4 ml-6">
         {user ? (
           <>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <button onClick={onProfileClick} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
               <User size={20} className="text-emerald-600" />
               <span className="hidden sm:inline text-gray-700 font-medium">{user?.nombre || 'Mi cuenta'}</span>
             </button>
@@ -128,7 +129,7 @@ function StoreNavbar({
           <div className="absolute top-16 right-4 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48 animate-fade-in flex flex-col">
             {user ? (
               <>
-                <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => setMenuOpen(false)}>
+                <button className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors w-full text-left" onClick={() => { onProfileClick(); setMenuOpen(false); }}>
                   <User size={20} className="text-emerald-600" />
                   <span className="text-gray-700 font-medium">{user?.nombre || 'Mi cuenta'}</span>
                 </button>

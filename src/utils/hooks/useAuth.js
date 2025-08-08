@@ -42,6 +42,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Permite a componentes externos refrescar los datos del usuario
+  const refreshUser = async () => {
+    await verificarAutenticacion();
+  };
+
   const login = async (email, password) => {
     try {
       setError(null);
@@ -132,6 +137,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     clearError,
+    refreshUser,
     isAuthenticated: !!user,
     isAdmin: user?.rol === 'admin',
   };

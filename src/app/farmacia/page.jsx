@@ -134,6 +134,11 @@ function Farmacia() {
      router.push('/farmacia/mis-compras');
    };
 
+   const irAPerfil = () => {
+     console.log('🚀 Navegando a perfil...');
+     router.push('/farmacia/perfil');
+   };
+
   return (
     <>
       
@@ -147,6 +152,7 @@ function Farmacia() {
   user={user}
   onCartClick={() => setCartPanelOpen(true)}
   onOrdersClick={irAMisCompras}
+  onProfileClick={irAPerfil}
   cartCount={obtenerCantidadTotal()}
 />
       
