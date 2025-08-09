@@ -1,5 +1,5 @@
 "use client"
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   CheckCircle, 
@@ -14,9 +14,17 @@ import Link from 'next/link';
 
 export default function ConfirmacionPage() {
   const router = useRouter();
+  const [numeroOrden, setNumeroOrden] = useState('');
 
-  // Generar número de orden aleatorio
-  const numeroOrden = `ORD-${new Date().getFullYear()}-${Math.random().toString().slice(2, 8)}`;
+  useEffect(() => {
+    try {
+      const n = sessionStorage.getItem('ultimaCompraNumero');
+      if (n) setNumeroOrden(n);
+      else setNumeroOrden(`ORD-${new Date().getFullYear()}-${Math.random().toString().slice(2, 8)}`);
+    } catch {
+      setNumeroOrden(`ORD-${new Date().getFullYear()}-${Math.random().toString().slice(2, 8)}`);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
@@ -39,7 +47,7 @@ export default function ConfirmacionPage() {
           {/* Número de orden */}
           <div className="bg-gray-50 rounded-lg p-4 mb-8">
             <p className="text-sm text-gray-600 mb-2">Número de Orden</p>
-            <p className="text-xl font-bold text-emerald-600">{numeroOrden}</p>
+            <p className="text-xl font-bold text-emerald-600">{numeroOrden || '—'}</p>
           </div>
 
           {/* Información del pedido */}

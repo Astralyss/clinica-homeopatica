@@ -31,6 +31,8 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1); // 1: Dirección, 2: Pago, 3: Confirmación
   const [loading, setLoading] = useState(false);
   const [showEmptyMessage, setShowEmptyMessage] = useState(false);
+  const [tieneDireccionGuardada, setTieneDireccionGuardada] = useState(false);
+  const [modoEditarDireccion, setModoEditarDireccion] = useState(false);
   
   // Estados de dirección
   const [direccion, setDireccion] = useState({
@@ -63,6 +65,41 @@ export default function CheckoutPage() {
       setShowEmptyMessage(true);
     }
   }, [carrito, carritoLoading]);
+
+  // Cargar dirección guardada del perfil
+  useEffect(() => {
+    const cargarPerfil = async () => {
+      try {
+        if (!user?.id) return;
+        const resp = await fetch(`/api/perfil?usuarioId=${user.id}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const personal = data?.perfil?.personal;
+        const d = data?.perfil?.direccion;
+        setDireccion((prev) => ({
+          ...prev,
+          nombre: personal?.nombre || prev.nombre,
+          apellido: personal?.apellidos || prev.apellido,
+          telefono: personal?.telefono || prev.telefono,
+          email: personal?.email || prev.email,
+          calle: d?.calle || prev.calle,
+          numeroExterior: d?.numero || prev.numeroExterior,
+          colonia: d?.colonia || prev.colonia,
+          ciudad: d?.ciudad || prev.ciudad,
+          estado: d?.estado || prev.estado,
+          codigoPostal: d?.codigoPostal || prev.codigoPostal,
+          referencias: d?.referencias || prev.referencias,
+        }));
+        const hay = !!(d && (d.calle || d.colonia || d.ciudad || d.estado || d.codigoPostal));
+        setTieneDireccionGuardada(hay);
+        setModoEditarDireccion(!hay);
+      } catch (e) {
+        setTieneDireccionGuardada(false);
+        setModoEditarDireccion(true);
+      }
+    };
+    cargarPerfil();
+  }, [user?.id]);
 
   // Formatear precio
   const formatPrice = (price) =>
@@ -108,6 +145,11 @@ export default function CheckoutPage() {
     setLoading(true);
     
     try {
+      if (!user?.id) {
+        alert('Debes iniciar sesión para completar la compra.');
+        router.push('/loginUsuario');
+        return;
+      }
       let paymentResult;
 
       if (metodoPago === 'tarjeta') {
@@ -130,9 +172,71 @@ export default function CheckoutPage() {
       }
 
       if (paymentResult.success) {
-        // Guardar información del pedido en la base de datos
-        // Aquí iría la lógica para guardar en la BD
-        
+        // Guardar/actualizar dirección en el perfil para futuras compras
+        try {
+          await fetch('/api/perfil', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tipo: 'direccion',
+              datos: {
+                usuarioId: user.id,
+                calle: direccion.calle,
+                numero: direccion.numeroExterior,
+                colonia: direccion.colonia,
+                ciudad: direccion.ciudad,
+                estado: direccion.estado,
+                codigoPostal: direccion.codigoPostal,
+                referencias: direccion.referencias,
+              },
+            }),
+          });
+        } catch {}
+        // Construir payload de compra
+        const payload = {
+          usuarioId: user.id,
+          direccion: {
+            nombre: `${direccion.nombre} ${direccion.apellido}`.trim(),
+            calle: direccion.calle,
+            numeroExterior: direccion.numeroExterior,
+            numeroInterior: direccion.numeroInterior,
+            colonia: direccion.colonia,
+            ciudad: direccion.ciudad,
+            estado: direccion.estado,
+            codigoPostal: direccion.codigoPostal,
+            referencias: direccion.referencias,
+          },
+          items: carrito.map((item) => ({
+            productoId: item.id,
+            cantidad: item.cantidad,
+          })),
+          pago: {
+            metodoPago: metodoPago === 'tarjeta' ? 'tarjeta' : 'paypal',
+            estado: 'completado',
+            moneda: 'MXN',
+            paymentIntentId: paymentResult.paymentIntent?.id || null,
+            success: true,
+          },
+        };
+
+        const resp = await fetch('/api/compras', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          throw new Error('No se pudo registrar la compra');
+        }
+
+        const data = await resp.json();
+        // Guardar número de orden para pantalla de confirmación
+        if (data?.compra?.numeroOrden) {
+          try {
+            sessionStorage.setItem('ultimaCompraNumero', data.compra.numeroOrden);
+          } catch {}
+        }
+
         // Limpiar carrito y redirigir a confirmación
         limpiarCarrito();
         router.push('/farmacia/checkout/confirmacion');
@@ -281,7 +385,28 @@ export default function CheckoutPage() {
                     <MapPin size={24} className="text-emerald-600" />
                     Dirección de Envío
                   </h2>
-                  
+
+                  {tieneDireccionGuardada && !modoEditarDireccion ? (
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p className="font-semibold text-gray-900">{direccion.nombre} {direccion.apellido}</p>
+                        <p className="text-gray-700">{direccion.calle} {direccion.numeroExterior}{direccion.numeroInterior ? `, Int. ${direccion.numeroInterior}` : ''}</p>
+                        <p className="text-gray-700">{direccion.colonia}, {direccion.ciudad}, {direccion.estado} {direccion.codigoPostal}</p>
+                        {direccion.referencias ? (
+                          <p className="text-sm text-gray-500 mt-1">{direccion.referencias}</p>
+                        ) : null}
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setModoEditarDireccion(true)}
+                          className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Editar dirección
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
@@ -414,7 +539,19 @@ export default function CheckoutPage() {
                         rows={3}
                       />
                     </div>
+                    {tieneDireccionGuardada && (
+                      <div className="md:col-span-2">
+                        <button
+                          type="button"
+                          onClick={() => setModoEditarDireccion(false)}
+                          className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Usar dirección guardada
+                        </button>
+                      </div>
+                    )}
                   </div>
+                  )}
                 </div>
               )}
 
