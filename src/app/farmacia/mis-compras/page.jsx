@@ -186,6 +186,9 @@ export default function MisComprasPage() {
                         <p className="text-xs text-gray-500">
                           {compra.productos.length} {compra.productos.length === 1 ? 'producto' : 'productos'}
                         </p>
+                        {compra.numeroSeguimiento && (
+                          <p className="text-xs text-blue-600 mt-1">Guía: {compra.numeroSeguimiento}{compra.empresaEnvio ? ` · ${compra.empresaEnvio}` : ''}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -300,7 +303,7 @@ export default function MisComprasPage() {
                       {selectedCompra.numeroSeguimiento && (
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Número de Seguimiento:</span>
-                          <span className="font-medium text-gray-900">{selectedCompra.numeroSeguimiento}</span>
+                          <span className="font-medium text-gray-900">{selectedCompra.numeroSeguimiento}{selectedCompra.empresaEnvio ? ` · ${selectedCompra.empresaEnvio}` : ''}</span>
                         </div>
                       )}
                     </div>

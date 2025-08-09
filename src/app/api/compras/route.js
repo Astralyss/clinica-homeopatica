@@ -43,6 +43,7 @@ function mapCompraToResponse(compra) {
     } : null,
     metodoPago: pago?.metodoPago || 'tarjeta',
     numeroSeguimiento: envio?.numeroGuia || null,
+    empresaEnvio: envio?.empresaEnvio || null,
     fechaEntrega: envio?.fechaEntrega || null,
   };
 }
@@ -121,7 +122,7 @@ export async function POST(request) {
       return { producto: prod, precioUnitario: precio, cantidad, subtotal: lineSubtotal };
     });
 
-    const costoEnvio = subtotal > 500 ? 0 : 150;
+    const costoEnvio = subtotal >= 1250 ? 0 : 250;
     const impuestos = 0;
     const descuento = 0;
     const total = subtotal + costoEnvio + impuestos - descuento;

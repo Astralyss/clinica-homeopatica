@@ -107,7 +107,7 @@ export default function CheckoutPage() {
 
   // Calcular totales
   const subtotal = obtenerTotal();
-  const envio = subtotal > 500 ? 0 : 150; // Envío gratuito sobre $500
+  const envio = subtotal >= 1250 ? 0 : 250; // Nueva regla: gratis desde $1250, $250 si es menor
   const total = subtotal + envio;
 
   // Validar dirección

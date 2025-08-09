@@ -48,6 +48,8 @@ export default function CarritoPage() {
     .reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
 
   const totalCarrito = obtenerTotal();
+  const envioCosto = totalCarrito >= 1250 ? 0 : 250;
+  const totalConEnvio = totalCarrito + envioCosto;
   const totalItems = obtenerCantidadTotal();
 
   // Funciones del carrito
@@ -293,12 +295,14 @@ export default function CarritoPage() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Envío:</span>
-                  <span className="text-emerald-600">Gratis</span>
+                  <span className={envioCosto === 0 ? 'text-emerald-600' : ''}>
+                    {envioCosto === 0 ? 'Gratis' : formatPrice(envioCosto)}
+                  </span>
                 </div>
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between text-lg font-bold text-gray-900">
                     <span>Total:</span>
-                    <span>{formatPrice(totalCarrito)}</span>
+                    <span>{formatPrice(totalConEnvio)}</span>
                   </div>
                 </div>
               </div>
@@ -337,7 +341,7 @@ export default function CarritoPage() {
                   <CheckCircle size={20} className="text-emerald-600 mt-0.5" />
                   <div className="text-sm text-emerald-800">
                     <p className="font-medium mb-1">Envío gratuito</p>
-                    <p>En pedidos superiores a $500 MXN</p>
+                    <p>En pedidos de $1,250 MXN o más</p>
                   </div>
                 </div>
               </div>
