@@ -97,50 +97,204 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard Administrativo</h1>
-        <p className="text-gray-600 mt-2">Resumen general de la clínica homeopática</p>
+    <div className="space-y-8">
+      {/* Header mejorado */}
+      {/* <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-8 border border-slate-200">
+        <h1 className="text-3xl font-bold text-slate-800 mb-2">Dashboard Administrativo</h1>
+        <p className="text-lg text-slate-600">Resumen general de la clínica homeopática</p>
+        <div className="mt-4 flex items-center space-x-4 text-sm text-slate-500">
+          <span>📊 Última actualización: {new Date().toLocaleDateString('es-ES')}</span>
+          <span>🏥 Total de áreas monitoreadas: 6</span>
+        </div>
+      </div> */}
+
+      {/* Primera fila - Tarjetas principales mejoradas con información integrada */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* TARJETA DE PEDIDOS - Mejorada con detalles integrados */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+          <div className="bg-gradient-to-br from-slate-100 to-slate-200 p-6 text-slate-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold">Estado de Pedidos</h3>
+                <p className="text-slate-600 text-sm mt-1">Gestión de órdenes del sistema</p>
+              </div>
+              <div className="bg-slate-300 bg-opacity-50 p-3 rounded-full">
+                {Icons.pedidos}
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-4xl font-bold text-slate-800">{stats.pedidos.total}</div>
+              <div className="text-slate-600 text-sm">Total de pedidos</div>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Pendientes</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-amber-300 h-2 rounded-full" style={{width: `${(stats.pedidos.pendientes / stats.pedidos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-amber-600">{stats.pedidos.pendientes}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Enviados</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-slate-400 h-2 rounded-full" style={{width: `${(stats.pedidos.enviados / stats.pedidos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-slate-600">{stats.pedidos.enviados}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Entregados</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-emerald-300 h-2 rounded-full" style={{width: `${(stats.pedidos.entregados / stats.pedidos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-emerald-600">{stats.pedidos.entregados}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2">
+                <span className="text-slate-600">Cancelados</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-rose-300 h-2 rounded-full" style={{width: `${(stats.pedidos.cancelados / stats.pedidos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-rose-600">{stats.pedidos.cancelados}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* TARJETA DE STOCK - Mejorada con detalles integrados */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 text-emerald-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold">Estado del Stock</h3>
+                <p className="text-emerald-600 text-sm mt-1">Control de inventario</p>
+              </div>
+              <div className="bg-emerald-200 bg-opacity-50 p-3 rounded-full">
+                {Icons.stock}
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-4xl font-bold text-emerald-800">{stats.productos.activos}</div>
+              <div className="text-emerald-600 text-sm">Productos activos</div>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Productos Activos</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-emerald-300 h-2 rounded-full" style={{width: `${(stats.productos.activos / stats.productos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-emerald-600">{stats.productos.activos}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Stock Bajo</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-amber-300 h-2 rounded-full" style={{width: `${(stats.productos.stockBajo / stats.productos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-amber-600">{stats.productos.stockBajo}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2">
+                <span className="text-slate-600">Sin Stock</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-rose-300 h-2 rounded-full" style={{width: `${(stats.productos.sinStock / stats.productos.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-rose-600">{stats.productos.sinStock}</span>
+                </div>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600 font-medium">Total Productos</span>
+                  <span className="font-bold text-slate-900">{stats.productos.total}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* TARJETA DE CONSULTAS - Mejorada con detalles integrados */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 text-amber-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold">Consultas Médicas</h3>
+                <p className="text-amber-600 text-sm mt-1">Estado de citas médicas</p>
+              </div>
+              <div className="bg-amber-200 bg-opacity-50 p-3 rounded-full">
+                {Icons.consultas}
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="text-4xl font-bold text-amber-800">{stats.consultas.total}</div>
+              <div className="text-amber-600 text-sm">Total de consultas</div>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Pendientes</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-amber-300 h-2 rounded-full" style={{width: `${(stats.consultas.pendientes / stats.consultas.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-amber-600">{stats.consultas.pendientes}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">Confirmadas</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-slate-400 h-2 rounded-full" style={{width: `${(stats.consultas.confirmadas / stats.consultas.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-slate-600">{stats.consultas.confirmadas}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between py-2">
+                <span className="text-slate-600">Completadas</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-slate-200 rounded-full h-2">
+                    <div className="bg-emerald-300 h-2 rounded-full" style={{width: `${(stats.consultas.completadas / stats.consultas.total) * 100}%`}}></div>
+                  </div>
+                  <span className="font-semibold text-emerald-600">{stats.consultas.completadas}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Primera fila - Tarjetas principales de información */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* PRIMERA TARJETA - INFORMACIÓN DE PEDIDOS */}
-        <DashboardCard
-          title="Estado de Pedidos"
-          value={stats.pedidos.total}
-          subtitle={`${stats.pedidos.pendientes} pendientes • ${stats.pedidos.enviados} enviados • ${stats.pedidos.entregados} entregados`}
-          icon={Icons.pedidos}
-          color="blue"
-        />
-        
-        {/* SEGUNDA TARJETA - ESTADO DEL STOCK */}
-        <DashboardCard
-          title="Stock de Productos"
-          value={stats.productos.activos}
-          subtitle={`${stats.productos.stockBajo} stock bajo • ${stats.productos.sinStock} sin stock`}
-          icon={Icons.stock}
-          color="green"
-        />
-        
-        {/* TERCERA TARJETA - CONSULTAS MÉDICAS */}
-        <DashboardCard
-          title="Consultas Médicas"
-          value={stats.consultas.total}
-          subtitle={`${stats.consultas.pendientes} pendientes • ${stats.consultas.confirmadas} confirmadas • ${stats.consultas.completadas} completadas`}
-          icon={Icons.consultas}
-          color="yellow"
-        />
-      </div>
-
-      {/* Segunda fila - Tarjetas adicionales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Segunda fila - Tarjetas financieras y de usuarios */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <DashboardCard
           title="Ventas del Mes"
           value={`$${stats.ventas.mesActual.toLocaleString()}`}
           subtitle={`Promedio: $${stats.ventas.promedioPedido.toLocaleString()}`}
           icon={Icons.ventas}
-          color="purple"
+          color="slate"
           trend={tendenciaVentas}
         />
         
@@ -149,7 +303,7 @@ const Dashboard = () => {
           value={stats.usuarios.total}
           subtitle={`${stats.usuarios.nuevosMes} nuevos este mes • ${stats.usuarios.activos} activos`}
           icon={Icons.usuarios}
-          color="indigo"
+          color="slate"
         />
         
         <DashboardCard
@@ -157,175 +311,61 @@ const Dashboard = () => {
           value={`$${stats.financiero.ingresosTotales.toLocaleString()}`}
           subtitle={`Mes actual: $${stats.financiero.ingresosMes.toLocaleString()}`}
           icon={Icons.financiero}
-          color="red"
+          color="slate"
           trend={tendenciaIngresos}
         />
       </div>
 
-      {/* Tercera fila - Gráficos de las tres áreas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <DashboardChart 
-          data={datosPedidos} 
-          title="Estado de Pedidos" 
-          type="bar" 
-        />
-        <DashboardChart 
-          data={datosProductos} 
-          title="Estado de Stock" 
-          type="bar" 
-        />
-        <DashboardChart 
-          data={datosConsultas} 
-          title="Estado de Consultas" 
-          type="bar" 
-        />
+      {/* Tercera fila - Gráficos mejorados */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="mr-2 text-slate-600">{Icons.pedidos}</span>
+            Distribución de Pedidos
+          </h3>
+          <DashboardChart 
+            data={datosPedidos} 
+            title="" 
+            type="doughnut" 
+          />
+        </div>
+        
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="mr-2 text-emerald-600">{Icons.stock}</span>
+            Estado del Inventario
+          </h3>
+          <DashboardChart 
+            data={datosProductos} 
+            title="" 
+            type="doughnut" 
+          />
+        </div>
+        
+        <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="mr-2 text-amber-600">{Icons.consultas}</span>
+            Estado de Consultas
+          </h3>
+          <DashboardChart 
+            data={datosConsultas} 
+            title="" 
+            type="doughnut" 
+          />
+        </div>
       </div>
 
       {/* Cuarta fila - Comparación de ventas */}
-      <div className="grid grid-cols-1 gap-6">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-6">
+        <h3 className="text-xl font-semibold text-slate-800 mb-6 flex items-center">
+          <span className="mr-3 text-slate-600">{Icons.ventas}</span>
+          Análisis de Ventas Mensuales
+        </h3>
         <DashboardChart 
           data={datosVentas} 
-          title="Comparación de Ventas Mensuales" 
+          title="" 
           type="bar" 
         />
-      </div>
-
-      {/* Quinta fila - Detalles adicionales organizados por área */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Detalles de Pedidos */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">{Icons.pedidos}</span>
-            Detalles de Pedidos
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Pedidos</span>
-              <span className="font-semibold text-blue-600">{stats.pedidos.total}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Pendientes</span>
-              <span className="font-semibold text-yellow-600">{stats.pedidos.pendientes}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Enviados</span>
-              <span className="font-semibold text-blue-600">{stats.pedidos.enviados}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Entregados</span>
-              <span className="font-semibold text-green-600">{stats.pedidos.entregados}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Cancelados</span>
-              <span className="font-semibold text-red-600">{stats.pedidos.cancelados}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Detalles de Stock */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">{Icons.stock}</span>
-            Estado del Stock
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Productos Activos</span>
-              <span className="font-semibold text-green-600">{stats.productos.activos}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Stock Bajo</span>
-              <span className="font-semibold text-yellow-600">{stats.productos.stockBajo}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Sin Stock</span>
-              <span className="font-semibold text-red-600">{stats.productos.sinStock}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Productos</span>
-              <span className="font-semibold text-gray-900">{stats.productos.total}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Detalles de Consultas */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">{Icons.consultas}</span>
-            Estado de Consultas
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Consultas</span>
-              <span className="font-semibold text-gray-900">{stats.consultas.total}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Pendientes</span>
-              <span className="font-semibold text-yellow-600">{stats.consultas.pendientes}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Confirmadas</span>
-              <span className="font-semibold text-blue-600">{stats.consultas.confirmadas}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Completadas</span>
-              <span className="font-semibold text-green-600">{stats.consultas.completadas}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sexta fila - Resumen financiero y usuarios */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">{Icons.financiero}</span>
-            Resumen Financiero
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Ingresos Totales</span>
-              <span className="font-semibold text-green-600">${stats.financiero.ingresosTotales.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Ingresos del Mes</span>
-              <span className="font-semibold text-blue-600">${stats.financiero.ingresosMes.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Promedio por Pedido</span>
-              <span className="font-semibold text-purple-600">${stats.ventas.promedioPedido.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total de Pedidos</span>
-              <span className="font-semibold text-gray-900">{stats.pedidos.total}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <span className="mr-2">{Icons.usuarios}</span>
-            Resumen de Usuarios
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Usuarios</span>
-              <span className="font-semibold text-gray-900">{stats.usuarios.total}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Usuarios Activos</span>
-              <span className="font-semibold text-green-600">{stats.usuarios.activos}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Nuevos este Mes</span>
-              <span className="font-semibold text-blue-600">{stats.usuarios.nuevosMes}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Consultas</span>
-              <span className="font-semibold text-yellow-600">{stats.consultas.total}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
