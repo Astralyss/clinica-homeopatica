@@ -85,6 +85,18 @@ export default function MisComprasPage() {
     return estados[estado] || estados['pendiente'];
   };
 
+  // Formatear fecha de cancelación
+  const formatCancelacionDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
 
 
   // Ver detalles de compra
@@ -301,6 +313,29 @@ export default function MisComprasPage() {
                         <span className="text-gray-600">Método de Pago:</span>
                         <span className="font-medium text-gray-900 capitalize">{selectedCompra.metodoPago}</span>
                       </div>
+                      
+                      {/* Información de cancelación si está cancelada */}
+                      {selectedCompra.estado === 'cancelada' && selectedCompra.motivoCancelacion && (
+                        <div className="col-span-2 bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-red-900 mb-2">Pedido Cancelado</h4>
+                              <div className="space-y-1 text-sm text-red-700">
+                                <div><strong>Motivo:</strong> {selectedCompra.motivoCancelacion}</div>
+                                <div><strong>Cancelado por:</strong> {
+                                  selectedCompra.canceladoPor === 'admin' ? 'Administrador' : 
+                                  selectedCompra.canceladoPor === 'sistema' ? 'Sistema' : 
+                                  'Cliente'
+                                }</div>
+                                {selectedCompra.fechaCancelacion && (
+                                  <div><strong>Fecha de cancelación:</strong> {formatCancelacionDate(selectedCompra.fechaCancelacion)}</div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {selectedCompra.numeroSeguimiento && (
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Número de Seguimiento:</span>

@@ -26,6 +26,9 @@ function mapCompraAdmin(compra) {
     subtotal: Number(compra.subtotal),
     costoEnvio: Number(compra.costoEnvio || 0),
     total: Number(compra.total),
+    motivoCancelacion: compra.motivoCancelacion,
+    fechaCancelacion: compra.fechaCancelacion,
+    canceladoPor: compra.canceladoPor,
     cliente: {
       id: compra.usuario.id,
       nombre: compra.usuario.nombre,

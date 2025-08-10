@@ -164,6 +164,11 @@ model Compra {
   fechaCompra       DateTime @default(now()) @map("fecha_compra")
   fechaActualizacion DateTime @updatedAt @map("fecha_actualizacion")
   
+  // Cancelación
+  motivoCancelacion String? @map("motivo_cancelacion")
+  fechaCancelacion  DateTime? @map("fecha_cancelacion")
+  canceladoPor      String? @map("cancelado_por") // 'admin', 'sistema', 'cliente'
+  
   // Notas
   notas             String?
   

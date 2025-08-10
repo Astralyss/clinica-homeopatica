@@ -29,6 +29,10 @@ export default function PedidosAdminPage() {
   const [editRowId, setEditRowId] = useState(null);
   const [editValues, setEditValues] = useState({ numeroGuia: '', empresaEnvio: '', estadoEnvio: '' });
   const [detalle, setDetalle] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [ordenACancelar, setOrdenACancelar] = useState(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState('');
+  const [cancelando, setCancelando] = useState(false);
 
   const cargarOrdenes = async () => {
     try {
@@ -88,6 +92,52 @@ export default function PedidosAdminPage() {
 
   const abrirDetalle = (orden) => setDetalle(orden);
   const cerrarDetalle = () => setDetalle(null);
+
+  const abrirModalCancelacion = (orden) => {
+    setOrdenACancelar(orden);
+    setMotivoCancelacion('');
+    setShowCancelModal(true);
+  };
+
+  const cerrarModalCancelacion = () => {
+    setShowCancelModal(false);
+    setOrdenACancelar(null);
+    setMotivoCancelacion('');
+  };
+
+  const cancelarPedido = async () => {
+    if (!motivoCancelacion.trim()) {
+      alert('Por favor ingresa un motivo para la cancelación');
+      return;
+    }
+
+    try {
+      setCancelando(true);
+      const resp = await fetch('/api/admin/ordenes/cancelar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          compraId: ordenACancelar.id,
+          motivoCancelacion: motivoCancelacion.trim()
+        }),
+      });
+
+      if (!resp.ok) {
+        const errorData = await resp.json();
+        throw new Error(errorData.error || 'Error al cancelar el pedido');
+      }
+
+      const data = await resp.json();
+      alert('Pedido cancelado exitosamente');
+      cerrarModalCancelacion();
+      await cargarOrdenes(); // Recargar la lista
+    } catch (e) {
+      console.error('Error cancelando pedido:', e);
+      alert(`Error al cancelar el pedido: ${e.message}`);
+    } finally {
+      setCancelando(false);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -212,6 +262,14 @@ export default function PedidosAdminPage() {
                           >
                             <Pencil size={16} /> Editar envío
                           </button>
+                          {o.estado !== 'cancelada' && o.estado !== 'entregada' && (
+                            <button
+                              onClick={() => abrirModalCancelacion(o)}
+                              className="inline-flex items-center gap-1 border border-red-300 text-red-700 px-3 py-1.5 rounded hover:bg-red-50"
+                            >
+                              <X size={16} /> Cancelar
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
@@ -245,7 +303,7 @@ export default function PedidosAdminPage() {
                           <div className="text-xs text-gray-500">Cantidad: {p.cantidad}</div>
                         </div>
                         <div className="text-right font-semibold">{formatCurrency(p.precio * p.cantidad)}</div>
-                      </div>
+                        </div>
                     ))}
                   </div>
                 </div>
@@ -260,6 +318,22 @@ export default function PedidosAdminPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Información de cancelación si está cancelada */}
+              {detalle.estado === 'cancelada' && detalle.motivoCancelacion && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                    <AlertCircle className="text-red-600" size={18}/> Pedido Cancelado
+                  </h3>
+                  <div className="text-sm text-red-700">
+                    <div className="mb-1"><strong>Motivo:</strong> {detalle.motivoCancelacion}</div>
+                    <div className="mb-1"><strong>Cancelado por:</strong> {detalle.canceladoPor === 'admin' ? 'Administrador' : detalle.canceladoPor === 'sistema' ? 'Sistema' : 'Cliente'}</div>
+                    {detalle.fechaCancelacion && (
+                      <div><strong>Fecha de cancelación:</strong> {new Date(detalle.fechaCancelacion).toLocaleString('es-MX')}</div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2 border-t pt-4">
                 <div className="flex items-center justify-between">
@@ -276,6 +350,61 @@ export default function PedidosAdminPage() {
                   <div className="text-gray-600 text-sm">Total</div>
                   <div className="text-2xl font-bold text-emerald-600">{formatCurrency(detalle.total)}</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Cancelación */}
+      {showCancelModal && ordenACancelar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={cerrarModalCancelacion}></div>
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full z-10 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-red-600">Cancelar Pedido</h2>
+              <button onClick={cerrarModalCancelacion} className="p-2 hover:bg-gray-100 rounded-lg"><X size={18} /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="text-sm text-gray-600">
+                <p>Estás por cancelar el pedido <strong>#{ordenACancelar.numeroOrden}</strong></p>
+                <p className="mt-2">Esta acción no se puede deshacer y:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-500">
+                  <li>Se marcará el pedido como cancelado</li>
+                  <li>Se restaurará el inventario de los productos</li>
+                  <li>Se procesará el reembolso si ya se realizó el pago</li>
+                </ul>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Motivo de la cancelación *
+                </label>
+                <textarea
+                  value={motivoCancelacion}
+                  onChange={(e) => setMotivoCancelacion(e.target.value)}
+                  placeholder="Describe el motivo de la cancelación..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="flex items-center gap-3 pt-4">
+                <button
+                  onClick={cerrarModalCancelacion}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  disabled={cancelando}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={cancelarPedido}
+                  disabled={cancelando || !motivoCancelacion.trim()}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelando ? 'Cancelando...' : 'Confirmar Cancelación'}
+                </button>
               </div>
             </div>
           </div>

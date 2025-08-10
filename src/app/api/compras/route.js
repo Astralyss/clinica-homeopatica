@@ -45,6 +45,10 @@ function mapCompraToResponse(compra) {
     numeroSeguimiento: envio?.numeroGuia || null,
     empresaEnvio: envio?.empresaEnvio || null,
     fechaEntrega: envio?.fechaEntrega || null,
+    // Información de cancelación
+    motivoCancelacion: compra.motivoCancelacion,
+    fechaCancelacion: compra.fechaCancelacion,
+    canceladoPor: compra.canceladoPor,
   };
 }
 
