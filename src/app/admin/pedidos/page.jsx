@@ -60,7 +60,7 @@ export default function PedidosAdminPage() {
     setEditValues({
       numeroGuia: orden.envio?.numeroGuia || '',
       empresaEnvio: orden.envio?.empresaEnvio || '',
-      estadoEnvio: orden.envio?.estado || 'pendiente',
+      estadoEnvio: orden.envio?.estado || 'confirmada',
     });
   };
 
@@ -74,7 +74,7 @@ export default function PedidosAdminPage() {
           numeroGuia: editValues.numeroGuia,
           empresaEnvio: editValues.empresaEnvio,
           estadoEnvio: editValues.estadoEnvio,
-          estadoCompra: editValues.estadoEnvio === 'enviado' ? 'enviada' : undefined,
+          estadoCompra: editValues.estadoEnvio === 'enviada' ? 'enviada' : undefined,
         }),
       });
       if (!resp.ok) throw new Error('Error actualizando orden');
@@ -179,10 +179,8 @@ export default function PedidosAdminPage() {
                             onChange={(e) => setEditValues((v) => ({ ...v, estadoEnvio: e.target.value }))}
                             className="border border-gray-200 rounded px-2 py-1"
                           >
-                            <option value="pendiente">Pendiente</option>
-                            <option value="enviado">Enviado</option>
-                            <option value="en_transito">En tránsito</option>
-                            <option value="entregado">Entregado</option>
+                            <option value="confirmada">Confirmada</option>
+                            <option value="enviada">Enviada</option>
                           </select>
                         </div>
                       ) : (

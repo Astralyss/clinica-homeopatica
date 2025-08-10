@@ -10,13 +10,13 @@ import {
   Clock, 
   AlertCircle,
   Eye,
-  Download,
   Calendar,
   DollarSign,
   MapPin,
   Phone,
   Mail,
-  ShoppingCart
+  ShoppingCart,
+  Copy
 } from 'lucide-react';
 import { useAuth } from '@/utils/hooks/useAuth';
 
@@ -93,15 +93,24 @@ export default function MisComprasPage() {
     setShowDetalles(true);
   };
 
-  // Descargar factura (simulado)
-  const descargarFactura = (compra) => {
-    alert(`Descargando factura de ${compra.numeroOrden}`);
-  };
 
-  // Rastrear envío (simulado)
-  const rastrearEnvio = (compra) => {
+
+  // Copiar número de guía al portapapeles
+  const copiarNumeroGuia = async (compra) => {
     if (compra.numeroSeguimiento) {
-      window.open(`https://tracking.example.com/${compra.numeroSeguimiento}`, '_blank');
+      try {
+        await navigator.clipboard.writeText(compra.numeroSeguimiento);
+        alert('Número de guía copiado al portapapeles. Ahora puedes ir a la página de la paquetería para rastrear tu paquete.');
+      } catch (err) {
+        // Fallback para navegadores que no soportan clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = compra.numeroSeguimiento;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Número de guía copiado al portapapeles. Ahora puedes ir a la página de la paquetería para rastrear tu paquete.');
+      }
     } else {
       alert('Número de seguimiento no disponible aún');
     }
@@ -221,35 +230,27 @@ export default function MisComprasPage() {
 
                   {/* Acciones */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => verDetalles(compra)}
-                        className="flex items-center gap-2 px-4 py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        <Eye size={16} />
-                        Ver detalles
-                      </button>
-                      
-                      {compra.numeroSeguimiento && (
-                        <button
-                          onClick={() => rastrearEnvio(compra)}
-                          className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Truck size={16} />
-                          Rastrear
-                        </button>
-                      )}
-                    </div>
+                                         <div className="flex items-center gap-3">
+                       <button
+                         onClick={() => verDetalles(compra)}
+                         className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-emerald-200 hover:border-emerald-300"
+                       >
+                         <Eye size={16} />
+                         Ver detalles
+                       </button>
+                       
+                       {compra.numeroSeguimiento && (
+                         <button
+                           onClick={() => copiarNumeroGuia(compra)}
+                           className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-blue-200 hover:border-blue-300"
+                         >
+                           <Copy size={16} />
+                           Copiar número de guía
+                         </button>
+                       )}
+                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => descargarFactura(compra)}
-                        className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <Download size={16} />
-                        Factura
-                      </button>
-                    </div>
+
                   </div>
                 </div>
               );
@@ -378,25 +379,19 @@ export default function MisComprasPage() {
 
                 {/* Acciones */}
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                  <div className="flex items-center gap-2">
-                    {selectedCompra.numeroSeguimiento && (
-                      <button
-                        onClick={() => rastrearEnvio(selectedCompra)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                      >
-                        <Truck size={16} />
-                        Rastrear Envío
-                      </button>
-                    )}
-                  </div>
+                                     <div className="flex items-center gap-3">
+                     {selectedCompra.numeroSeguimiento && (
+                       <button
+                         onClick={() => copiarNumeroGuia(selectedCompra)}
+                         className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                       >
+                         <Copy size={18} />
+                         Copiar número de guía
+                       </button>
+                     )}
+                   </div>
                   
-                  <button
-                    onClick={() => descargarFactura(selectedCompra)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                  >
-                    <Download size={16} />
-                    Descargar Factura
-                  </button>
+
                 </div>
               </div>
           </div>
