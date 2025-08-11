@@ -10,11 +10,11 @@ function formatCurrency(value) {
 function EstadoBadge({ estado }) {
   const map = {
     pendiente: { text: 'Pendiente', cls: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
-    confirmada: { text: 'Confirmada', cls: 'bg-blue-50 text-blue-700 border border-blue-200' },
+    confirmado: { text: 'Confirmado', cls: 'bg-blue-50 text-blue-700 border border-blue-200' },
     en_proceso: { text: 'En proceso', cls: 'bg-orange-50 text-orange-700 border border-orange-200' },
-    enviada: { text: 'Enviada', cls: 'bg-purple-50 text-purple-700 border border-purple-200' },
-    entregada: { text: 'Entregada', cls: 'bg-green-50 text-green-700 border border-green-200' },
-    cancelada: { text: 'Cancelada', cls: 'bg-red-50 text-red-700 border border-red-200' },
+    enviado: { text: 'Enviado', cls: 'bg-purple-50 text-purple-700 border border-purple-200' },
+    entregado: { text: 'Entregado', cls: 'bg-green-50 text-green-700 border border-green-200' },
+    cancelado: { text: 'Cancelado', cls: 'bg-red-50 text-red-700 border border-red-200' },
   };
   const info = map[estado] || map.pendiente;
   return <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${info.cls}`}>{info.text}</span>;
@@ -61,15 +61,15 @@ export default function PedidosAdminPage() {
 
   const startEdit = (orden) => {
     // Mapear el estado del backend al frontend para mostrar correctamente en el select
-    let estadoEnvioFrontend = 'confirmada';
+    let estadoEnvioFrontend = 'confirmado';
     if (orden.envio?.estado === 'enviado') {
-      estadoEnvioFrontend = 'enviada';
+      estadoEnvioFrontend = 'enviado';
     } else if (orden.envio?.estado === 'entregado') {
-      estadoEnvioFrontend = 'entregada';
+      estadoEnvioFrontend = 'entregado';
     } else if (orden.envio?.estado === 'pendiente') {
-      estadoEnvioFrontend = 'confirmada';
-    } else if (orden.estado === 'cancelada') {
-      estadoEnvioFrontend = 'cancelada';
+      estadoEnvioFrontend = 'confirmado';
+    } else if (orden.estado === 'cancelado') {
+      estadoEnvioFrontend = 'cancelado';
     }
 
     console.log('Estado del envío en backend:', orden.envio?.estado);
@@ -91,18 +91,18 @@ export default function PedidosAdminPage() {
       let estadoEnvioBackend = editValues.estadoEnvio;
       let estadoCompra = undefined;
       
-      if (editValues.estadoEnvio === 'enviada') {
+      if (editValues.estadoEnvio === 'enviado') {
         estadoEnvioBackend = 'enviado';
-        estadoCompra = 'enviada';
-      } else if (editValues.estadoEnvio === 'entregada') {
+        estadoCompra = 'enviado';
+      } else if (editValues.estadoEnvio === 'entregado') {
         estadoEnvioBackend = 'entregado';
-        estadoCompra = 'entregada';
-      } else if (editValues.estadoEnvio === 'confirmada') {
+        estadoCompra = 'entregado';
+      } else if (editValues.estadoEnvio === 'confirmado') {
         estadoEnvioBackend = 'pendiente';
-        estadoCompra = 'confirmada';
-      } else if (editValues.estadoEnvio === 'cancelada') {
+        estadoCompra = 'confirmado';
+      } else if (editValues.estadoEnvio === 'cancelado') {
         estadoEnvioBackend = 'pendiente'; // El envío se mantiene en pendiente
-        estadoCompra = 'cancelada';
+        estadoCompra = 'cancelado';
       }
 
       console.log('Valor seleccionado en frontend:', editValues.estadoEnvio);
@@ -118,7 +118,7 @@ export default function PedidosAdminPage() {
           empresaEnvio: editValues.empresaEnvio,
           estadoEnvio: estadoEnvioBackend,
           estadoCompra: estadoCompra,
-          motivoCancelacion: editValues.estadoEnvio === 'cancelada' ? editValues.motivoCancelacion : undefined,
+          motivoCancelacion: editValues.estadoEnvio === 'cancelado' ? editValues.motivoCancelacion : undefined,
         }),
       });
       if (!resp.ok) throw new Error('Error actualizando orden');
@@ -211,11 +211,11 @@ export default function PedidosAdminPage() {
                 >
                   <option value="todos">Todos los estados</option>
                   <option value="pendiente">Pendiente</option>
-                  <option value="confirmada">Confirmada</option>
+                  <option value="confirmado">Confirmado</option>
                   <option value="en_proceso">En proceso</option>
-                  <option value="enviada">Enviada</option>
-                  <option value="entregada">Entregada</option>
-                  <option value="cancelada">Cancelada</option>
+                  <option value="enviado">Enviado</option>
+                  <option value="entregado">Entregado</option>
+                  <option value="cancelado">Cancelado</option>
                 </select>
               </div>
               
@@ -326,7 +326,7 @@ export default function PedidosAdminPage() {
                        <Pencil size={16} />
                        Editar estado
                      </button>
-                     {o.estado === 'entregada' && (
+                     {o.estado === 'entregado' && (
                        <button
                          onClick={() => borrarPedido(o)}
                          disabled={borrando}
@@ -452,7 +452,7 @@ export default function PedidosAdminPage() {
                            <Pencil size={16} />
                            Editar estado
                          </button>
-                         {o.estado === 'entregada' && (
+                         {o.estado === 'entregado' && (
                            <button
                              onClick={() => borrarPedido(o)}
                              disabled={borrando}
@@ -554,8 +554,8 @@ export default function PedidosAdminPage() {
                 </div>
               </div>
 
-              {/* Información de cancelación si está cancelada */}
-              {detalle.estado === 'cancelada' && detalle.motivoCancelacion && (
+              {/* Información de cancelación si está cancelado */}
+              {detalle.estado === 'cancelado' && detalle.motivoCancelacion && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-6">
                   <h3 className="font-semibold text-red-800 mb-3 flex items-center gap-2 text-base sm:text-lg">
                     <AlertCircle className="text-red-600" size={20}/> 
@@ -662,15 +662,15 @@ export default function PedidosAdminPage() {
                       className="w-full border border-slate-300 rounded-xl px-3 sm:px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                     >
                       <option value="">Seleccionar estado</option>
-                      <option value="confirmada">Confirmada</option>
-                      <option value="enviada">Enviada</option>
-                      <option value="entregada">Entregada</option>
-                      <option value="cancelada">Cancelada</option>
+                      <option value="confirmado">Confirmado</option>
+                      <option value="enviado">Enviado</option>
+                      <option value="entregado">Entregado</option>
+                      <option value="cancelado">Cancelado</option>
                     </select>
                   </div>
 
-                  {/* Campo de motivo de cancelación - solo visible cuando se selecciona "Cancelada" */}
-                  {editValues.estadoEnvio === 'cancelada' && (
+                  {/* Campo de motivo de cancelación - solo visible cuando se selecciona "Cancelado" */}
+                  {editValues.estadoEnvio === 'cancelado' && (
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Motivo de la cancelación *
@@ -699,7 +699,7 @@ export default function PedidosAdminPage() {
                 </button>
                 <button
                   onClick={() => saveEdit(ordenParaEditar)}
-                  disabled={editValues.estadoEnvio === 'cancelada' && !editValues.motivoCancelacion?.trim()}
+                  disabled={editValues.estadoEnvio === 'cancelado' && !editValues.motivoCancelacion?.trim()}
                   className="w-full sm:flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save size={20} className="inline mr-2" />
