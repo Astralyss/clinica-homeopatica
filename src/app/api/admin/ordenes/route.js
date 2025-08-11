@@ -108,7 +108,9 @@ export async function GET(request) {
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { compraId, numeroGuia, empresaEnvio, estadoEnvio, estadoCompra } = body;
+    const { compraId, numeroGuia, empresaEnvio, estadoEnvio, estadoCompra, motivoCancelacion } = body;
+
+    console.log('API recibió:', { compraId, numeroGuia, empresaEnvio, estadoEnvio, estadoCompra, motivoCancelacion });
 
     if (!compraId) {
       return NextResponse.json({ error: 'compraId es requerido' }, { status: 400 });
@@ -145,12 +147,27 @@ export async function PUT(request) {
       ...(estadoEnvio === 'entregado' ? { fechaEntrega: new Date() } : {}),
     };
 
+    console.log('Datos del envío a guardar:', dataEnvio);
+    console.log('Estado de la compra a actualizar:', estadoCompra);
+
     if (Object.keys(dataEnvio).length > 0) {
       await prisma.envio.update({ where: { id: envio.id }, data: dataEnvio });
+      console.log('Envío actualizado exitosamente');
     }
 
+    // Actualizar el estado de la compra si se proporciona
     if (estadoCompra) {
-      await prisma.compra.update({ where: { id: compra.id }, data: { estado: estadoCompra } });
+      const dataCompra = { estado: estadoCompra };
+      
+      // Si se está cancelando, agregar el motivo y la fecha
+      if (estadoCompra === 'cancelada' && motivoCancelacion) {
+        dataCompra.motivoCancelacion = motivoCancelacion;
+        dataCompra.fechaCancelacion = new Date();
+        dataCompra.canceladoPor = 'admin';
+      }
+      
+      await prisma.compra.update({ where: { id: compra.id }, data: dataCompra });
+      console.log('Estado de la compra actualizado exitosamente');
     }
 
     const compraActualizada = await prisma.compra.findUnique({
