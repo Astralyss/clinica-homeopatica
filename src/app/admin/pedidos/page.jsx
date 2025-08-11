@@ -190,7 +190,7 @@ export default function PedidosAdminPage() {
           {/* Barra de búsqueda y filtros mejorada y responsiva */}
           <div className="space-y-4">
             {/* Búsqueda principal */}
-            <div className="relative">
+            {/* <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
                 type="text"
@@ -199,7 +199,7 @@ export default function PedidosAdminPage() {
                 onChange={(e) => setQ(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
               />
-            </div>
+            </div> */}
             
             {/* Filtros responsivos */}
             <div className="flex flex-col sm:flex-row gap-3">
@@ -210,9 +210,9 @@ export default function PedidosAdminPage() {
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-white text-sm sm:text-base"
                 >
                   <option value="todos">Todos los estados</option>
-                  <option value="pendiente">Pendiente</option>
+                  {/* <option value="pendiente">Pendiente</option> */}
                   <option value="confirmado">Confirmado</option>
-                  <option value="en_proceso">En proceso</option>
+                  {/* <option value="en_proceso">En proceso</option> */}
                   <option value="enviado">Enviado</option>
                   <option value="entregado">Entregado</option>
                   <option value="cancelado">Cancelado</option>
