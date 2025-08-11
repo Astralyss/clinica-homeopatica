@@ -5,6 +5,7 @@ import PharmaSecction from "@/components/landing/PharmaSecction";
 import History from "@/components/landing/History";
 import AboutUs from "@/components/landing/AboutUs";
 import HeroSection from "@/components/landing/HeroSection";
+import WhatsContact from "@/components/landing/WhatsContact";
 import RegistroForm from '../components/auth/RegistroForm';
 // import ConsultForm from "@/components/forms/ConsultForm";
 
@@ -91,9 +92,9 @@ export default function Home() {
         </div>
       </div> */}
 
-      {/* <ConsultForm /> */}
 
       <PharmaSecction />
+      <WhatsContact />
       <History />
       <AboutUs />
       {/* Eliminar <RegistroForm /> de la página principal */}
