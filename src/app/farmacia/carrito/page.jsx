@@ -12,7 +12,8 @@ import {
   Package,
   AlertCircle,
   CheckCircle,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/utils/hooks/useAuth';
 import { useCarrito } from '@/utils/context/CarritoContext';
@@ -23,10 +24,15 @@ export default function CarritoPage() {
   const { 
     carrito, 
     loading, 
-    actualizarCantidad, 
+    incrementarCantidad,
+    decrementarCantidad,
     eliminarProducto, 
     obtenerCantidadTotal, 
-    obtenerTotal 
+    obtenerTotal,
+    obtenerInfoStock,
+    hayErroresStock,
+    obtenerProductosSinStock,
+    tieneStockSuficiente
   } = useCarrito();
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [showEmptyMessage, setShowEmptyMessage] = useState(false);
@@ -53,8 +59,16 @@ export default function CarritoPage() {
   const totalItems = obtenerCantidadTotal();
 
   // Funciones del carrito
-  const handleActualizarCantidad = (id, nuevaCantidad) => {
-    actualizarCantidad(id, nuevaCantidad);
+  const handleIncrementarCantidad = (item) => {
+    const resultado = incrementarCantidad(item);
+    if (!resultado) {
+      // Mostrar notificación de stock insuficiente si es necesario
+      console.log('No se puede agregar más unidades - stock insuficiente');
+    }
+  };
+
+  const handleDecrementarCantidad = (item) => {
+    decrementarCantidad(item);
   };
 
   const handleEliminarProducto = (id) => {
@@ -90,6 +104,13 @@ export default function CarritoPage() {
     const itemsSeleccionados = carrito.filter(item => selectedItems.has(item.id));
     if (itemsSeleccionados.length === 0) return;
     
+    // Verificar que no haya errores de stock en los productos seleccionados
+    const productosConError = itemsSeleccionados.filter(item => obtenerInfoStock(item.id));
+    if (productosConError.length > 0) {
+      alert('No puedes proceder con productos que exceden el stock disponible. Revisa las cantidades.');
+      return;
+    }
+    
     // Guardar solo los productos seleccionados en el carrito
     localStorage.setItem('carrito', JSON.stringify(itemsSeleccionados));
     
@@ -98,6 +119,12 @@ export default function CarritoPage() {
 
   const comprarTodo = () => {
     if (carrito.length === 0) return;
+    
+    // Verificar que no haya errores de stock
+    if (hayErroresStock()) {
+      alert('No puedes proceder con productos que exceden el stock disponible. Revisa las cantidades.');
+      return;
+    }
     
     // Asegurar que el carrito esté guardado en localStorage antes de navegar
     localStorage.setItem('carrito', JSON.stringify(carrito));
@@ -183,6 +210,20 @@ export default function CarritoPage() {
           )}
         </div>
 
+        {/* Advertencia de stock si hay errores */}
+        {hayErroresStock() && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 text-red-700 mb-2">
+              <AlertTriangle size={20} />
+              <span className="font-medium">Stock insuficiente</span>
+            </div>
+            <p className="text-sm text-red-600">
+              Algunos productos en tu carrito exceden el stock disponible. 
+              Revisa las cantidades antes de proceder con la compra.
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Lista de productos */}
           <div className="lg:col-span-2">
@@ -213,71 +254,97 @@ export default function CarritoPage() {
 
               {/* Lista de productos */}
               <div className="space-y-4">
-                {carrito.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 border border-gray-100 rounded-xl hover:shadow-sm transition-shadow">
-                    {/* Checkbox de selección */}
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.has(item.id)}
-                      onChange={() => toggleSeleccion(item.id)}
-                      className="w-5 h-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
-                    />
-
-                    {/* Imagen del producto */}
-                    <div className="relative w-20 h-20 bg-gray-50 rounded-lg border border-gray-100 overflow-hidden flex-shrink-0">
-                      <Image
-                        src={item.imagenes && item.imagenes.length > 0 ? item.imagenes[0].url : '/productos/placeholder.png'}
-                        alt={item.nombre}
-                        fill
-                        className="object-contain"
-                        sizes="80px"
+                {carrito.map((item) => {
+                  const stockInfo = obtenerInfoStock(item.id);
+                  const tieneErrorStock = !!stockInfo;
+                  const puedeAgregarMas = tieneStockSuficiente(item.id);
+                  
+                  return (
+                    <div key={item.id} className={`flex items-center gap-4 p-4 border rounded-xl hover:shadow-sm transition-shadow ${
+                      tieneErrorStock ? 'border-red-200 bg-red-50' : 'border-gray-100'
+                    }`}>
+                      {/* Checkbox de selección */}
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(item.id)}
+                        onChange={() => toggleSeleccion(item.id)}
+                        className="w-5 h-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                       />
-                    </div>
 
-                    {/* Información del producto */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 mb-1">{item.nombre}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{item.presentacion}</p>
-                      
-                      {/* Controles de cantidad */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center border border-gray-200 rounded-lg">
-                                                     <button
-                             onClick={() => handleActualizarCantidad(item.id, item.cantidad - 1)}
-                             disabled={item.cantidad <= 1}
-                             className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                           >
-                             <Minus size={16} />
-                           </button>
-                           <span className="px-4 py-2 font-medium">{item.cantidad}</span>
-                           <button
-                             onClick={() => handleActualizarCantidad(item.id, item.cantidad + 1)}
-                             className="p-2 hover:bg-gray-50"
-                           >
-                             <Plus size={16} />
-                           </button>
-                        </div>
+                      {/* Imagen del producto */}
+                      <div className="relative w-20 h-20 bg-gray-50 rounded-lg border border-gray-100 overflow-hidden flex-shrink-0">
+                        <Image
+                          src={item.imagenes && item.imagenes.length > 0 ? item.imagenes[0].url : '/productos/placeholder.png'}
+                          alt={item.nombre}
+                          fill
+                          className="object-contain"
+                          sizes="80px"
+                        />
+                      </div>
+
+                      {/* Información del producto */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 mb-1">{item.nombre}</h3>
+                        <p className="text-sm text-gray-500 mb-2">{item.presentacion}</p>
                         
-                                                 <button
-                           onClick={() => handleEliminarProducto(item.id)}
-                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                         >
-                           <Trash2 size={16} />
-                         </button>
+                        {/* Mensaje de error de stock */}
+                        {tieneErrorStock && (
+                          <div className="flex items-center gap-1 mb-2 text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                            <AlertTriangle size={12} />
+                            <span>{stockInfo.mensaje}</span>
+                          </div>
+                        )}
+                        
+                        {/* Controles de cantidad */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center border border-gray-200 rounded-lg">
+                            <button
+                              onClick={() => handleDecrementarCantidad(item)}
+                              disabled={item.cantidad <= 1}
+                              className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className={`px-4 py-2 font-medium ${tieneErrorStock ? 'text-red-600' : 'text-gray-800'}`}>
+                              {item.cantidad}
+                            </span>
+                            <button
+                              onClick={() => handleIncrementarCantidad(item)}
+                              disabled={!puedeAgregarMas}
+                              className={`p-2 transition-colors ${
+                                !puedeAgregarMas 
+                                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                                  : tieneErrorStock 
+                                    ? 'hover:bg-red-100 text-red-600' 
+                                    : 'hover:bg-gray-50'
+                              }`}
+                              title={!puedeAgregarMas ? 'No hay más stock disponible' : tieneErrorStock ? `Máximo ${stockInfo.maximoPermitido} unidades disponibles` : 'Agregar una unidad más'}
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
+                          
+                          <button
+                            onClick={() => handleEliminarProducto(item.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Precio */}
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-emerald-700">
-                        {formatPrice(item.precio * item.cantidad)}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {formatPrice(item.precio)} c/u
+                      {/* Precio */}
+                      <div className="text-right">
+                        <div className={`text-lg font-bold ${tieneErrorStock ? 'text-red-600' : 'text-emerald-700'}`}>
+                          {formatPrice(item.precio * item.cantidad)}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {formatPrice(item.precio)} c/u
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -312,18 +379,26 @@ export default function CarritoPage() {
                 {selectedItems.size > 0 ? (
                   <button
                     onClick={comprarSeleccionados}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className={`w-full font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                      hayErroresStock() 
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
                   >
                     <CreditCard size={20} />
-                    Comprar seleccionados ({selectedItems.size})
+                    {hayErroresStock() ? 'Revisar seleccionados' : `Comprar seleccionados (${selectedItems.size})`}
                   </button>
                 ) : (
                   <button
                     onClick={comprarTodo}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className={`w-full font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                      hayErroresStock() 
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
                   >
                     <CreditCard size={20} />
-                    Comprar todo
+                    {hayErroresStock() ? 'Revisar carrito' : 'Comprar todo'}
                   </button>
                 )}
 
