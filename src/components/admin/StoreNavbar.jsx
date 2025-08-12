@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SearchBar from '../ui/SearchBar';
-import { ShoppingCart, User, Package, Menu, Tag, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, Package, Menu, Tag, ChevronDown, Shield } from 'lucide-react';
 import { useCategorias } from '../../utils/hooks/useCategorias';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/utils/hooks/useAuth';
@@ -22,7 +22,7 @@ function StoreNavbar({
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutMsg, setLogoutMsg] = useState('');
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -31,6 +31,10 @@ function StoreNavbar({
       setLogoutMsg('');
       router.push('/');
     }, 1500);
+  };
+
+  const handleAdminClick = () => {
+    router.push('/admin');
   };
 
   // Obtener el texto a mostrar
@@ -102,6 +106,13 @@ function StoreNavbar({
                 </span>
               )}
             </button>
+            {/* Botón Admin - solo visible para administradores */}
+            {isAdmin && (
+              <button onClick={handleAdminClick} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors border border-purple-200">
+                <Shield size={20} className="text-purple-600" />
+                <span className="hidden sm:inline text-purple-700 font-medium">Admin</span>
+              </button>
+            )}
             <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors border border-red-200 ml-2">
               <span className="text-red-600 font-medium">Cerrar sesión</span>
             </button>
@@ -146,6 +157,13 @@ function StoreNavbar({
                     </span>
                   )}
                 </button>
+                {/* Botón Admin móvil - solo visible para administradores */}
+                {isAdmin && (
+                  <button className="flex items-center gap-2 px-4 py-3 hover:bg-purple-50 transition-colors w-full text-left border-t border-purple-100" onClick={() => { handleAdminClick(); setMenuOpen(false); }}>
+                    <Shield size={20} className="text-purple-600" />
+                    <span className="text-purple-700 font-medium">Admin</span>
+                  </button>
+                )}
                 <button onClick={async () => { await handleLogout(); setMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 hover:bg-red-50 transition-colors w-full text-left border-t border-red-100">
                   <span className="text-red-600 font-medium">Cerrar sesión</span>
                 </button>

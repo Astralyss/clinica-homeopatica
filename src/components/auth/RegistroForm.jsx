@@ -10,9 +10,11 @@ export default function RegistroForm() {
     apellidoMaterno: '',
     email: '',
     password: '',
+    confirmPassword: '',
     telefono: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -22,11 +24,30 @@ export default function RegistroForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const validatePasswords = () => {
+    if (form.password !== form.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return false;
+    }
+    if (form.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
+
+    // Validar contraseñas antes de enviar
+    if (!validatePasswords()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/auth/registro', {
         method: 'POST',
@@ -36,7 +57,7 @@ export default function RegistroForm() {
       const data = await res.json();
       if (data.success) {
         setSuccess('¡Registro exitoso!');
-        setForm({ nombre: '', apellidoPaterno: '', apellidoMaterno: '', email: '', password: '', telefono: '' });
+        setForm({ nombre: '', apellidoPaterno: '', apellidoMaterno: '', email: '', password: '', confirmPassword: '', telefono: '' });
         setTimeout(() => {
           router.push('/loginUsuario');
         }, 2000);
@@ -267,6 +288,39 @@ export default function RegistroForm() {
                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-300"
                       >
                         {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirmar Contraseña */}
+                  <div className="space-y-2">
+                    <label className="text-gray-700 font-medium text-sm">
+                      Confirmar Contraseña <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        name="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={form.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        minLength={6}
+                        placeholder="Repite tu contraseña"
+                        className="w-full pl-10 pr-12 py-3 lg:py-4 bg-white/60 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent backdrop-blur-sm transition-all duration-300 hover:bg-white/80"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-300"
+                      >
+                        {showConfirmPassword ? (
                           <EyeOff className="h-5 w-5" />
                         ) : (
                           <Eye className="h-5 w-5" />
