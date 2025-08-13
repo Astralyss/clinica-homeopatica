@@ -26,31 +26,31 @@ export default function PharmaSection() {
   }, []);
 
   return (
-    <section className="w-full max-w-6xl mx-auto px-4 py-10">
+    <section className="w-full max-w-6xl mx-auto px-4 py-10" aria-label="Productos homeopáticos destacados">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-green-900 mb-4">
           Productos Homeopáticos Destacados
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Descubre nuestra selección de productos homeopáticos de alta calidad, 
-          cuidadosamente seleccionados para tu bienestar natural.
+          Descubre nuestra selección de productos homeopáticos de alta calidad en nuestra tienda homeopática, 
+          cuidadosamente seleccionados para tu bienestar natural. Consultorio homeopático con farmacia especializada.
         </p>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          <span className="ml-3 text-gray-600">Cargando productos...</span>
+          <span className="ml-3 text-gray-600">Cargando productos homeopáticos...</span>
         </div>
       ) : error ? (
         <div className="text-center py-10 bg-red-50 rounded-lg border border-red-200">
-          <div className="text-red-600 font-medium">Error al cargar productos</div>
+          <div className="text-red-600 font-medium">Error al cargar productos homeopáticos</div>
           <div className="text-red-500 text-sm mt-1">{error}</div>
           <button onClick={fetchPrincipales} className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Reintentar</button>
         </div>
       ) : productos.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-lg">
-          <div className="text-gray-500 text-lg">No hay productos destacados disponibles.</div>
+          <div className="text-gray-500 text-lg">No hay productos homeopáticos destacados disponibles.</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -63,7 +63,7 @@ export default function PharmaSection() {
               <div className="relative h-64 bg-white flex items-center justify-center p-4">
                 <img
                   src={producto.imagenes && producto.imagenes[0] ? producto.imagenes[0].url : '/productos/placeholder.png'}
-                  alt={producto.nombre}
+                  alt={`Producto homeopático ${producto.nombre}`}
                   className="max-h-56 max-w-full object-contain group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -97,7 +97,7 @@ export default function PharmaSection() {
                 ) : (
                   <div className="mb-4 flex-grow">
                     <p className="text-sm text-gray-600 leading-relaxed">
-                      {producto.descripcion || "Producto homeopático de alta calidad"}
+                      {producto.descripcion || "Producto homeopático de alta calidad para tu bienestar natural"}
                     </p>
                   </div>
                 )}
@@ -136,10 +136,10 @@ export default function PharmaSection() {
 
       {/* Botón para ver tienda completa */}
       <div className="flex justify-center mt-12">
-        <Link href="/farmacia">
+        <Link href="/farmacia" aria-label="Visitar tienda homeopática completa">
           <button className="group px-8 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-green-600 text-white font-semibold hover:from-emerald-700 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
             <span className="flex items-center">
-              Ver tienda completa
+              Ver tienda homeopática completa
               <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>

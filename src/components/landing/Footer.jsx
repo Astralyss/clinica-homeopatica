@@ -2,7 +2,7 @@ import { Facebook, Phone, Mail, Clock } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-emerald-900 text-white py-10 px-6">
+    <footer className="bg-emerald-900 text-white py-10 px-6" aria-label="Información de contacto del consultorio homeopático">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
 
         {/* Columna 1: Logo, Slogan y Horarios */}
@@ -11,12 +11,12 @@ export default function Footer() {
             <img
               src="/logo.svg"
               className="h-10 w-10"
-              alt="logo consultorio homeopatico"
+              alt="Logo clínica homeopática consultorio homeopático"
             />
-            <h3 className="text-xl font-bold">Consultorio Homeopático</h3>
+            <h3 className="text-xl font-bold">Clínica Homeopática</h3>
           </div>
           <p className="mt-2 italic text-sm text-gray-200">
-            "Sanando con la sabiduría de la naturaleza"
+            "Sanando con la sabiduría de la naturaleza - Consultorio homeopático especializado"
           </p>
           
         </div>
@@ -27,24 +27,25 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2">
               <Facebook className="w-4 h-4" />
-              <a href="https://facebook.com/consultoriohomeopatico" className="hover:underline" target="_blank">
+              <a href="https://facebook.com/consultoriohomeopatico" className="hover:underline" target="_blank" rel="noopener noreferrer" aria-label="Seguir en Facebook">
                 Facebook
               </a>
             </li>
             <li className="flex items-center gap-2">
               <Phone className="w-4 h-4" />
               <a
-                href="https://wa.me/5217717129797?text=Hola%2C%20quisiera%20más%20información%20sobre%20el%20consultorio"
+                href="https://wa.me/5217717129797?text=Hola%2C%20quisiera%20más%20información%20sobre%20el%20consultorio%20homeopático"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
+                aria-label="Contactar por WhatsApp"
               >
                 771 712 9797
               </a>
             </li>
             <li className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
-              <a href="mailto:centrohomeopatico@yahoo.com" className="hover:underline">
+              <a href="mailto:centrohomeopatico@yahoo.com" className="hover:underline" aria-label="Enviar email">
                 centrohomeopatico@yahoo.com
               </a>
             </li>
@@ -53,7 +54,7 @@ export default function Footer() {
 
         {/* Columna 3: Dirección y mapa */}
         <div>
-          <h4 className="text-lg font-semibold mb-3">Dirección</h4>
+          <h4 className="text-lg font-semibold mb-3">Dirección del Consultorio</h4>
 
           <div className="flex flex-col md:flex-row items-start gap-4">
             {/* Dirección de texto */}
@@ -64,6 +65,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className=""
+              aria-label="Ver ubicación en Google Maps"
             >
                <p className="text-sm text-gray-100 max-w-[300px]">
               Plaza de las Américas local 15 módulo A,<br />
@@ -90,7 +92,7 @@ export default function Footer() {
 
       {/* Footer inferior */}
       <div className="border-t border-white/20 mt-10 pt-4 text-center text-sm text-gray-300">
-        © 2025 Consultorio Homeopático. Todos los derechos reservados.
+        © 2025 Clínica Homeopática - Consultorio Homeopático. Todos los derechos reservados.
       </div>
     </footer>
   );

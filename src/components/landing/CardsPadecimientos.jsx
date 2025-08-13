@@ -129,25 +129,25 @@ import Image from "next/image";
 const categorias = [
   {
     titulo: "Bienestar General",
-    descripcion: "Cuidado de la mente, Debilidad general, Bienestar sexual, Cuidado respiratorio",
+    descripcion: "Cuidado de la mente, Debilidad general, Bienestar sexual, Cuidado respiratorio. Tratamiento homeopático integral para tu salud.",
     imagen: "/images/salud.jpg", 
     ruta: "/padecimientos/bienestarGeneral",
   },
   {
     titulo: "Salud Digestiva y Nutrición",
-    descripcion: "Cuidado del estómago, Control de peso, Diabetes, Cuidado cardiaco, Estreñimiento y hemorroides ",
+    descripcion: "Cuidado del estómago, Control de peso, Diabetes, Cuidado cardiaco, Estreñimiento y hemorroides. Medicina homeopática natural.",
     imagen: "/images/digestiva.jpg",
     ruta: "/padecimientos/saludDigestiva",
   },
   {
     titulo: "Cuidado Personal y Equilibrio Corporal",
-    descripcion: "Cuidado de la piel, Cuidado del cabello, Higiene, Cuidado de ojos y oídos",
+    descripcion: "Cuidado de la piel, Cuidado del cabello, Higiene, Cuidado de ojos y oídos. Productos homeopáticos para tu bienestar.",
     imagen: "/images/dos.jpg",
     ruta: "/padecimientos/cuidadoPersonal",
   },
   {
     titulo: "Cuidado Terapéutico y Especializado",
-    descripcion: "Infecciones virales Tos y resfriado, Cuidado de huesos, articulaciones y músculos",
+    descripcion: "Infecciones virales, Tos y resfriado, Cuidado de huesos, articulaciones y músculos. Consultorio homeopático especializado.",
     imagen: "/images/terapeutico.jpg",
     ruta: "/padecimientos/cuidadoTerapeutico",
   },
@@ -155,21 +155,18 @@ const categorias = [
 
 export default function CardsPadecimientos() {
   return (
-    // <div className="py-12 px-4 mt-16 max-w-7xl mx-auto ">
-    <div className=" px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* <h2 className="text-3xl font-bold text-blue-800 mb-10 text-center">
-        Categorías de Padecimientos
-      </h2> */}
+    <div className=" px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-label="Categorías de padecimientos tratados con homeopatía">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {categorias.map((cat) => (
           <Link
             key={cat.titulo}
             href={cat.ruta}
             className="block bg-white shadow-md hover:shadow-lg rounded-2xl overflow-hidden transition-shadow duration-300"
+            aria-label={`Ver tratamientos homeopáticos para ${cat.titulo}`}
           >
             <Image
               src={cat.imagen}
-              alt={cat.titulo}
+              alt={`Tratamiento homeopático para ${cat.titulo}`}
               width={400}
               height={250}
               className="w-full h-48 object-cover"

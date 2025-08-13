@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://clinica-homeopatica.com/sitemap.xml
+
+# Crawl-delay para ser respetuoso con el servidor
+Crawl-delay: 1
+
+# Permitir acceso a recursos importantes
+Allow: /api/
+Allow: /farmacia/
+Allow: /padecimientos/
+Allow: /agendarConsulta/
+
+# Bloquear acceso a archivos de desarrollo
+Disallow: /_next/
+Disallow: /api/admin/
+Disallow: /test-*
+Disallow: /*.js
+Disallow: /*.css
+Disallow: /*.map
+
+# Permitir acceso a imágenes y recursos estáticos
+Allow: /images/
+Allow: /productos/
+Allow: /img/
+Allow: /logo.svg
+Allow: /favicon.ico

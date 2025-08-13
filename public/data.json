@@ -1,46 +1,76 @@
-[
-  {
-    "id": 1,
-    "nombre": "Gotas de Árnica",
-    "descripcion": "Alivio natural para golpes, contusiones e inflamaciones. Ideal para deportistas y recuperación post-traumática.",
-    "precio": 120,
-    "imagen": "/productos/arnica.jpg",
-    "categoria": "Traumatología",
-    "presentacion": "Frasco de 30ml",
-    "beneficios": ["Anti-inflamatorio", "Analgésico", "100% Natural"],
-    "registroSanitario": "RS-2024-001"
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalBusiness",
+  "name": "Clínica Homeopática",
+  "alternateName": "Consultorio Homeopático",
+  "description": "Consultorio homeopático especializado en medicina natural e integral con más de 20 años de experiencia en Pachuca, Hidalgo.",
+  "url": "https://clinica-homeopatica.com",
+  "telephone": "+52-771-712-9797",
+  "email": "centrohomeopatico@yahoo.com",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Plaza de las Américas local 15 módulo A",
+    "addressLocality": "Pachuca",
+    "addressRegion": "Hidalgo",
+    "addressCountry": "MX"
   },
-  {
-    "id": 2,
-    "nombre": "Tabletas de Nux Vomica",
-    "descripcion": "Tratamiento efectivo para problemas digestivos, náuseas y malestar estomacal. Fórmula homeopática tradicional.",
-    "precio": 150,
-    "imagen": "/productos/nuxvomica.jpg",
-    "categoria": "Digestivo",
-    "presentacion": "Frasco de 60 tabletas",
-    "beneficios": ["Digestivo", "Anti-náuseas", "Detox natural"],
-    "registroSanitario": "RS-2024-002"
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 20.1006572,
+    "longitude": -98.7535665
   },
-  {
-    "id": 3,
-    "nombre": "Extracto de Calendula",
-    "descripcion": "Solución natural para el cuidado de la piel, heridas menores y regeneración celular.",
-    "precio": 95,
-    "imagen": "/productos/calendula.jpg",
-    "categoria": "Dermatología",
-    "presentacion": "Tubo de 50g",
-    "beneficios": ["Cicatrizante", "Antiséptico", "Regenerador"],
-    "registroSanitario": "RS-2024-003"
+  "openingHours": [
+    "Mo-Fr 11:00-19:00",
+    "Su 07:00-08:00"
+  ],
+  "priceRange": "$$",
+  "paymentAccepted": ["Cash", "Credit Card", "Debit Card"],
+  "currenciesAccepted": "MXN",
+  "medicalSpecialty": [
+    "Homeopatía",
+    "Medicina Natural",
+    "Medicina Integral",
+    "Herbolaria",
+    "Acupuntura",
+    "Naturismo",
+    "Nutrición",
+    "Medicina Ortomolecular",
+    "Rehabilitación"
+  ],
+  "serviceType": [
+    "Consulta médica homeopática",
+    "Tratamiento homeopático personalizado",
+    "Venta de productos homeopáticos",
+    "Medicina natural",
+    "Bienestar integral"
+  ],
+  "areaServed": [
+    "Pachuca",
+    "Hidalgo",
+    "México"
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Productos Homeopáticos",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "Productos Homeopáticos",
+          "description": "Productos homeopáticos de alta calidad para el bienestar natural"
+        }
+      }
+    ]
   },
-  {
-    "id": 4,
-    "nombre": "Complejo Nervioso",
-    "descripcion": "Fórmula especializada para el manejo del estrés, ansiedad y trastornos del sueño.",
-    "precio": 180,
-    "imagen": "/productos/nervioso.jpg",
-    "categoria": "Neurología",
-    "presentacion": "Frasco de 30ml",
-    "beneficios": ["Relajante", "Anti-estrés", "Mejora el sueño"],
-    "registroSanitario": "RS-2024-004"
+  "sameAs": [
+    "https://facebook.com/consultoriohomeopatico"
+  ],
+  "foundingDate": "2004",
+  "numberOfEmployees": "5-10",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "reviewCount": "150"
   }
-]
+}

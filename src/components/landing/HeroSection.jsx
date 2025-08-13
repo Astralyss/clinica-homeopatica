@@ -4,8 +4,7 @@ import { ShoppingBag, CalendarClock, Leaf, Heart, Shield, Users } from 'lucide-r
 
 export default function HeroSection() {
   return (
-    <section className="relative py-0 overflow-hidden ">
-
+    <section className="relative py-0 overflow-hidden" aria-label="Clínica Homeopática - Bienestar Integral">
 
       <div className="relative max-w-4xl mx-auto text-center px-4">
         {/* Badge de confianza */}
@@ -21,7 +20,6 @@ export default function HeroSection() {
           </span>
         </motion.div>
 
-
         {/* Título principal */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
@@ -29,7 +27,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6"
         >
-          Bienestar físico y{' '}
+          Clínica Homeopática: Bienestar físico y{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-800">
             emocional
           </span>{' '}
@@ -43,7 +41,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-gray-600 text-xl mb-12 max-w-2xl mx-auto leading-relaxed"
         >
-          Acompañamos cada paso con ética, empatía y un enfoque natural e integral para tu salud y bienestar.
+          Consultorio homeopático especializado en medicina natural e integral. Acompañamos cada paso con ética, empatía y un enfoque holístico para tu salud y bienestar. Tienda homeopática con productos de alta calidad.
         </motion.p>
 
         {/* Botones principales */}
@@ -58,21 +56,22 @@ export default function HeroSection() {
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             className="group relative inline-flex items-center justify-center px-8 py-4 text-white bg-gradient-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            aria-label="Visitar tienda homeopática"
           >
             <ShoppingBag className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-            Ir a la farmacia
+            Ir a la farmacia homeopática
             <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
           </motion.a>
-
 
           <motion.a
             href="/agendarConsulta"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             className="group inline-flex items-center justify-center px-8 py-4 border-2 border-green-700 text-green-700 hover:bg-green-700 hover:text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+            aria-label="Agendar consulta homeopática"
           >
             <CalendarClock className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-            Reservar consulta
+            Reservar consulta homeopática
           </motion.a>
         </motion.div>
 
@@ -91,7 +90,7 @@ export default function HeroSection() {
               <Heart className="w-8 h-8 text-green-600" />
             </motion.div>
             <h3 className="font-bold text-gray-900 mb-2">Atención Personalizada</h3>
-            <p className="text-gray-600 text-sm">Tratamiento adaptado a cada paciente</p>
+            <p className="text-gray-600 text-sm">Tratamiento homeopático adaptado a cada paciente</p>
           </div>
 
           <div className="group text-center">
@@ -102,7 +101,7 @@ export default function HeroSection() {
               <Shield className="w-8 h-8 text-green-600" />
             </motion.div>
             <h3 className="font-bold text-gray-900 mb-2">Métodos Seguros</h3>
-            <p className="text-gray-600 text-sm">Medicina natural sin efectos secundarios</p>
+            <p className="text-gray-600 text-sm">Medicina homeopática natural sin efectos secundarios</p>
           </div>
 
           <div className="group text-center">
@@ -113,11 +112,9 @@ export default function HeroSection() {
               <Users className="w-8 h-8 text-green-600" />
             </motion.div>
             <h3 className="font-bold text-gray-900 mb-2">Experiencia Comprobada</h3>
-            <p className="text-gray-600 text-sm">Miles de pacientes satisfechos</p>
+            <p className="text-gray-600 text-sm">Miles de pacientes satisfechos en nuestro consultorio</p>
           </div>
         </motion.div>
-
-
 
       </div>
     </section>

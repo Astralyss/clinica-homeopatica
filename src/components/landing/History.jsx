@@ -459,25 +459,25 @@ import { motion, AnimatePresence } from "framer-motion";
 const infoSections = [
   {
     title: "¿Qué es la homeopatía?",
-    text: "La homeopatía es un sistema de medicina alternativa que se basa en la idea de tratar 'lo similar con lo similar'. Fue creada por el médico alemán Samuel Hahnemann a finales del siglo XVIII y principios del XIX.",
+    text: "La homeopatía es un sistema de medicina alternativa que se basa en la idea de tratar 'lo similar con lo similar'. Fue creada por el médico alemán Samuel Hahnemann a finales del siglo XVIII y principios del XIX. Nuestro consultorio homeopático utiliza estos principios para tratar diversos padecimientos de manera natural y efectiva.",
     subtitle: "Diseñado para optimizar el proceso de reclutamiento, esta solución ofrece funciones como seguimiento de candidatos, análisis de currículum y herramientas de evaluación de candidatos.",
     image: "/img/que-es.jpg",
   },
   {
-    title: "Historia",
-    text: "Samuel Hahnemann (1755-1843), fundador de la homeopatía, descubrió que la quinina causaba síntomas similares a la malaria en personas sanas.",
+    title: "Historia de la Homeopatía",
+    text: "Samuel Hahnemann (1755-1843), fundador de la homeopatía, descubrió que la quinina causaba síntomas similares a la malaria en personas sanas. Este descubrimiento revolucionario sentó las bases de la medicina homeopática que practicamos en nuestra clínica homeopática.",
     subtitle: "Sistema integral para gestionar el cumplimiento normativo y evaluar riesgos organizacionales de manera proactiva.",
     image: "/img/historia.png",
   },
   {
-    title: "¿Cómo funciona?",
-    text: "El principio fundamental es 'Similia similibus curentur'. Una sustancia que causa síntomas en una persona sana puede curar síntomas similares en una enferma.",
+    title: "¿Cómo funciona la homeopatía?",
+    text: "El principio fundamental es 'Similia similibus curentur'. Una sustancia que causa síntomas en una persona sana puede curar síntomas similares en una enferma. En nuestro consultorio homeopático aplicamos este principio para crear tratamientos personalizados y efectivos.",
     subtitle: "Herramientas especializadas para mejorar la participación, satisfacción y retención de empleados en toda la organización.",
     image: "/img/funciona.jpg",
   },
   {
     title: "Generaciones de la homeopatía",
-    text: "Desde el siglo XIX, la homeopatía ha evolucionado en México y el mundo. Se han creado sociedades, publicaciones, y organizaciones.",
+    text: "Desde el siglo XIX, la homeopatía ha evolucionado en México y el mundo. Se han creado sociedades, publicaciones, y organizaciones que han mantenido vigente esta medicina natural hasta hoy. Nuestra clínica homeopática continúa esta tradición de excelencia.",
     subtitle: "Plataforma avanzada para identificar, atraer y contratar el mejor talento de manera eficiente y estratégica.",
     image: "/img/generaciones.jpg",
   },
@@ -487,7 +487,7 @@ export default function HistoryInteractive() {
   const [selected, setSelected] = useState(0);
 
   return (
-    <section className=" py-16 px-4 md:px-6 lg:px-12">
+    <section className=" py-16 px-4 md:px-6 lg:px-12" aria-label="Información sobre homeopatía y medicina natural">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
           {/* Imagen del lado izquierdo */}
@@ -497,7 +497,7 @@ export default function HistoryInteractive() {
                 <motion.img
                   key={infoSections[selected].image}
                   src={infoSections[selected].image}
-                  alt={infoSections[selected].title}
+                  alt={`${infoSections[selected].title} - Clínica Homeopática`}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
