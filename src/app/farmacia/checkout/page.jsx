@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/utils/hooks/useAuth';
 import { useCarrito } from '@/utils/context/CarritoContext';
-import { stripeService } from '@/utils/services/stripeService';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -48,15 +47,6 @@ export default function CheckoutPage() {
     estado: '',
     codigoPostal: '',
     referencias: ''
-  });
-
-  // Estados de pago
-  const [metodoPago, setMetodoPago] = useState('tarjeta');
-  const [datosTarjeta, setDatosTarjeta] = useState({
-    numero: '',
-    nombre: '',
-    expiracion: '',
-    cvv: ''
   });
 
   // Verificar si el carrito está vacío
@@ -116,20 +106,12 @@ export default function CheckoutPage() {
     return camposRequeridos.every(campo => direccion[campo]?.trim());
   };
 
-  // Validar datos de pago
-  const validarPago = () => {
-    if (metodoPago === 'tarjeta') {
-      return datosTarjeta.numero && datosTarjeta.nombre && datosTarjeta.expiracion && datosTarjeta.cvv;
-    }
-    return true;
-  };
-
   // Siguiente paso
   const siguientePaso = () => {
     if (step === 1 && validarDireccion()) {
       setStep(2);
-    } else if (step === 2 && validarPago()) {
-      setStep(3);
+    } else if (step === 2) {
+      setStep(3); // No hay validaciones de pago en este paso
     }
   };
 
@@ -150,99 +132,85 @@ export default function CheckoutPage() {
         router.push('/loginUsuario');
         return;
       }
-      let paymentResult;
 
-      if (metodoPago === 'tarjeta') {
-        // Validar datos de tarjeta
-        const validation = stripeService.validateCardData(datosTarjeta);
-        if (!validation.isValid) {
-          alert(`Error en datos de tarjeta: ${Object.values(validation.errors).join(', ')}`);
-          return;
-        }
+      // TODO: Implementar Stripe real aquí
+      // Esta función será reemplazada completamente cuando se implemente Stripe
+      alert('Sistema de pagos en desarrollo. Stripe será implementado próximamente.');
+      setLoading(false);
+      return;
 
-        // Procesar pago con tarjeta
-        paymentResult = await stripeService.processCardPayment(total, datosTarjeta);
-      } else {
-        // Para PayPal, crear PaymentIntent
-        const clientSecret = await stripeService.createPaymentIntent(total);
-        paymentResult = await stripeService.confirmPayment(clientSecret, {
-          id: 'paypal_mock',
-          amount: total
-        });
-      }
-
-      if (paymentResult.success) {
-        // Guardar/actualizar dirección en el perfil para futuras compras
-        try {
-          await fetch('/api/perfil', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              tipo: 'direccion',
-              datos: {
-                usuarioId: user.id,
-                calle: direccion.calle,
-                numero: direccion.numeroExterior,
-                colonia: direccion.colonia,
-                ciudad: direccion.ciudad,
-                estado: direccion.estado,
-                codigoPostal: direccion.codigoPostal,
-                referencias: direccion.referencias,
-              },
-            }),
-          });
-        } catch {}
-        // Construir payload de compra
-        const payload = {
-          usuarioId: user.id,
-          direccion: {
-            nombre: `${direccion.nombre} ${direccion.apellido}`.trim(),
-            calle: direccion.calle,
-            numeroExterior: direccion.numeroExterior,
-            numeroInterior: direccion.numeroInterior,
-            colonia: direccion.colonia,
-            ciudad: direccion.ciudad,
-            estado: direccion.estado,
-            codigoPostal: direccion.codigoPostal,
-            referencias: direccion.referencias,
-          },
-          items: carrito.map((item) => ({
-            productoId: item.id,
-            cantidad: item.cantidad,
-          })),
-          pago: {
-            metodoPago: metodoPago === 'tarjeta' ? 'tarjeta' : 'paypal',
-            estado: 'completado',
-            moneda: 'MXN',
-            paymentIntentId: paymentResult.paymentIntent?.id || null,
-            success: true,
-          },
-        };
-
-        const resp = await fetch('/api/compras', {
-          method: 'POST',
+      // Código comentado - será reemplazado por Stripe real:
+      /*
+      // Guardar/actualizar dirección en el perfil para futuras compras
+      try {
+        await fetch('/api/perfil', {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            tipo: 'direccion',
+            datos: {
+              usuarioId: user.id,
+              calle: direccion.calle,
+              numero: direccion.numeroExterior,
+              colonia: direccion.colonia,
+              ciudad: direccion.ciudad,
+              estado: direccion.estado,
+              codigoPostal: direccion.codigoPostal,
+              referencias: direccion.referencias,
+            },
+          }),
         });
+      } catch {}
+      
+      // Construir payload de compra
+      const payload = {
+        usuarioId: user.id,
+        direccion: {
+          nombre: `${direccion.nombre} ${direccion.apellido}`.trim(),
+          calle: direccion.calle,
+          numeroExterior: direccion.numeroExterior,
+          numeroInterior: direccion.numeroInterior,
+          colonia: direccion.colonia,
+          ciudad: direccion.ciudad,
+          estado: direccion.estado,
+          codigoPostal: direccion.codigoPostal,
+          referencias: direccion.referencias,
+        },
+        items: carrito.map((item) => ({
+          productoId: item.id,
+          cantidad: item.cantidad,
+        })),
+        pago: {
+          metodoPago: 'stripe', // Será reemplazado por Stripe real
+          estado: 'pendiente', // Stripe manejará el estado
+          moneda: 'MXN',
+          paymentIntentId: null, // Stripe proporcionará esto
+          success: false, // Stripe determinará el resultado
+        },
+      };
 
-        if (!resp.ok) {
-          throw new Error('No se pudo registrar la compra');
-        }
+      const resp = await fetch('/api/compras', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-        const data = await resp.json();
-        // Guardar número de orden para pantalla de confirmación
-        if (data?.compra?.numeroOrden) {
-          try {
-            sessionStorage.setItem('ultimaCompraNumero', data.compra.numeroOrden);
-          } catch {}
-        }
-
-        // Limpiar carrito y redirigir a confirmación
-        limpiarCarrito();
-        router.push('/farmacia/checkout/confirmacion');
-      } else {
-        throw new Error('Error en el procesamiento del pago');
+      if (!resp.ok) {
+        throw new Error('No se pudo registrar la compra');
       }
+
+      const data = await resp.json();
+      // Guardar número de orden para pantalla de confirmación
+      if (data?.compra?.numeroOrden) {
+        try {
+          sessionStorage.setItem('ultimaCompraNumero', data.compra.numeroOrden);
+        } catch {}
+      }
+
+      // Limpiar carrito y redirigir a confirmación
+      limpiarCarrito();
+      router.push('/farmacia/checkout/confirmacion');
+      */
       
     } catch (error) {
       console.error('Error al procesar pago:', error);
@@ -257,42 +225,6 @@ export default function CheckoutPage() {
     setDireccion(prev => ({
       ...prev,
       [campo]: valor
-    }));
-  };
-
-  // Manejar cambios en datos de tarjeta
-  const handleTarjetaChange = (campo, valor) => {
-    let valorFormateado = valor;
-    
-    // Formatear número de tarjeta
-    if (campo === 'numero') {
-      const cleaned = valor.replace(/\s/g, '');
-      const match = cleaned.match(/^(\d{4})(\d{4})(\d{4})(\d{4})$/);
-      if (match) {
-        valorFormateado = `${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
-      } else {
-        valorFormateado = cleaned.replace(/(\d{4})/g, '$1 ').trim();
-      }
-    }
-    
-    // Formatear fecha de expiración
-    if (campo === 'expiracion') {
-      const cleaned = valor.replace(/\D/g, '');
-      if (cleaned.length >= 2) {
-        valorFormateado = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
-      } else {
-        valorFormateado = cleaned;
-      }
-    }
-    
-    // Limitar CVV a 4 dígitos
-    if (campo === 'cvv') {
-      valorFormateado = valor.replace(/\D/g, '').slice(0, 4);
-    }
-    
-    setDatosTarjeta(prev => ({
-      ...prev,
-      [campo]: valorFormateado
     }));
   };
 
@@ -558,95 +490,22 @@ export default function CheckoutPage() {
               {step === 2 && (
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <CreditCard size={24} className="text-emerald-600" />
+                    <Shield size={24} className="text-gray-600" />
                     Método de Pago
                   </h2>
                   
-                  <div className="space-y-4">
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="metodoPago"
-                          value="tarjeta"
-                          checked={metodoPago === 'tarjeta'}
-                          onChange={(e) => setMetodoPago(e.target.value)}
-                          className="w-4 h-4 text-emerald-600"
-                        />
-                        <CreditCard size={20} className="text-emerald-600" />
-                        <span className="font-medium">Tarjeta de Crédito/Débito</span>
-                      </label>
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                      <CreditCard size={32} className="text-gray-400" />
                     </div>
-                    
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="metodoPago"
-                          value="paypal"
-                          checked={metodoPago === 'paypal'}
-                          onChange={(e) => setMetodoPago(e.target.value)}
-                          className="w-4 h-4 text-emerald-600"
-                        />
-                        <span className="font-medium">PayPal</span>
-                      </label>
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Métodos de Pago
+                    </h3>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      Los métodos de pago serán implementados con Stripe próximamente. 
+                      Por favor, continúa al siguiente paso para revisar tu pedido.
+                    </p>
                   </div>
-
-                  {metodoPago === 'tarjeta' && (
-                    <div className="mt-6 space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Número de Tarjeta *</label>
-                        <input
-                          type="text"
-                          value={datosTarjeta.numero}
-                          onChange={(e) => handleTarjetaChange('numero', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          placeholder="1234 5678 9012 3456"
-                          maxLength={19}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Nombre en la Tarjeta *</label>
-                          <input
-                            type="text"
-                            value={datosTarjeta.nombre}
-                            onChange={(e) => handleTarjetaChange('nombre', e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                            placeholder="Juan Pérez"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Expiración *</label>
-                            <input
-                              type="text"
-                              value={datosTarjeta.expiracion}
-                              onChange={(e) => handleTarjetaChange('expiracion', e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                              placeholder="MM/AA"
-                              maxLength={5}
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
-                            <input
-                              type="text"
-                              value={datosTarjeta.cvv}
-                              onChange={(e) => handleTarjetaChange('cvv', e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                              placeholder="123"
-                              maxLength={4}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -671,12 +530,10 @@ export default function CheckoutPage() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="font-semibold text-gray-900 mb-3">Método de Pago</h3>
                       <p className="text-gray-700">
-                        {metodoPago === 'tarjeta' ? 'Tarjeta de Crédito/Débito' : 'PayPal'}
-                        {metodoPago === 'tarjeta' && datosTarjeta.numero && (
-                          <span className="block text-sm text-gray-500 mt-1">
-                            Terminada en {datosTarjeta.numero.slice(-4)}
-                          </span>
-                        )}
+                        Pendiente de implementación
+                        <span className="block text-sm text-gray-500 mt-1">
+                          Stripe será implementado próximamente
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -698,7 +555,7 @@ export default function CheckoutPage() {
                   {step < 3 ? (
                     <button
                       onClick={siguientePaso}
-                      disabled={step === 1 ? !validarDireccion() : !validarPago()}
+                      disabled={step === 1 ? !validarDireccion() : false}
                       className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                     >
                       Continuar
