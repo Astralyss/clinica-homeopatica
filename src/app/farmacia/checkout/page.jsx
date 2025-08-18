@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/utils/hooks/useAuth';
 import { useCarrito } from '@/utils/context/CarritoContext';
+import StripePaymentElement from '@/components/stripe/StripePaymentElement';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -133,14 +134,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      // TODO: Implementar Stripe real aquí
-      // Esta función será reemplazada completamente cuando se implemente Stripe
-      alert('Sistema de pagos en desarrollo. Stripe será implementado próximamente.');
-      setLoading(false);
-      return;
-
-      // Código comentado - será reemplazado por Stripe real:
-      /*
       // Guardar/actualizar dirección en el perfil para futuras compras
       try {
         await fetch('/api/perfil', {
@@ -181,11 +174,11 @@ export default function CheckoutPage() {
           cantidad: item.cantidad,
         })),
         pago: {
-          metodoPago: 'stripe', // Será reemplazado por Stripe real
-          estado: 'pendiente', // Stripe manejará el estado
+          metodoPago: 'stripe',
+          estado: 'pendiente',
           moneda: 'MXN',
-          paymentIntentId: null, // Stripe proporcionará esto
-          success: false, // Stripe determinará el resultado
+          paymentIntentId: null, // Se actualizará cuando se complete el pago
+          success: false,
         },
       };
 
@@ -210,7 +203,6 @@ export default function CheckoutPage() {
       // Limpiar carrito y redirigir a confirmación
       limpiarCarrito();
       router.push('/farmacia/checkout/confirmacion');
-      */
       
     } catch (error) {
       console.error('Error al procesar pago:', error);
@@ -494,18 +486,17 @@ export default function CheckoutPage() {
                     Método de Pago
                   </h2>
                   
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                      <CreditCard size={32} className="text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Métodos de Pago
-                    </h3>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                      Los métodos de pago serán implementados con Stripe próximamente. 
-                      Por favor, continúa al siguiente paso para revisar tu pedido.
-                    </p>
-                  </div>
+                  <StripePaymentElement
+                    amount={total}
+                    onPaymentSuccess={(paymentIntent) => {
+                      console.log('Pago exitoso:', paymentIntent);
+                      // Aquí puedes guardar la información del pedido en tu base de datos
+                      setStep(3);
+                    }}
+                    onPaymentError={(error) => {
+                      console.error('Error en el pago:', error);
+                    }}
+                  />
                 </div>
               )}
 
@@ -530,9 +521,9 @@ export default function CheckoutPage() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="font-semibold text-gray-900 mb-3">Método de Pago</h3>
                       <p className="text-gray-700">
-                        Pendiente de implementación
+                        Pago procesado con Stripe
                         <span className="block text-sm text-gray-500 mt-1">
-                          Stripe será implementado próximamente
+                          Tarjeta de crédito/débito o OXXO
                         </span>
                       </p>
                     </div>
