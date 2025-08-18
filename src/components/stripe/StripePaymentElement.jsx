@@ -7,7 +7,7 @@ import PaymentForm from './PaymentForm';
 // Cargar Stripe con la clave pública
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-export default function StripePaymentElement({ amount, onPaymentSuccess, onPaymentError }) {
+export default function StripePaymentElement({ amount, onPaymentSuccess, onPaymentError, onPaymentStatusChange }) {
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -114,6 +114,7 @@ export default function StripePaymentElement({ amount, onPaymentSuccess, onPayme
         clientSecret={clientSecret}
         onPaymentSuccess={onPaymentSuccess}
         onPaymentError={onPaymentError}
+        onPaymentStatusChange={onPaymentStatusChange}
       />
     </Elements>
   );

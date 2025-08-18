@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import { Shield, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
 
-export default function PaymentForm({ clientSecret, onPaymentSuccess, onPaymentError }) {
+export default function PaymentForm({ clientSecret, onPaymentSuccess, onPaymentError, onPaymentStatusChange }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -54,6 +54,7 @@ export default function PaymentForm({ clientSecret, onPaymentSuccess, onPaymentE
       if (paymentIntent.status === 'succeeded') {
         setSuccess(true);
         onPaymentSuccess?.(paymentIntent);
+        onPaymentStatusChange?.(true); // Notificar que el pago se completó
       } else if (paymentIntent.status === 'requires_action') {
         // El pago requiere autenticación adicional (3D Secure, etc.)
         const { error: actionError } = await stripe.confirmPayment({

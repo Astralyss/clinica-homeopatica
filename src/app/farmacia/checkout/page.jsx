@@ -34,6 +34,10 @@ export default function CheckoutPage() {
   const [tieneDireccionGuardada, setTieneDireccionGuardada] = useState(false);
   const [modoEditarDireccion, setModoEditarDireccion] = useState(false);
   
+  // Estado de pago - NUEVO: Controla si el pago se completó
+  const [pagoCompletado, setPagoCompletado] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState(null);
+  
   // Estados de dirección
   const [direccion, setDireccion] = useState({
     nombre: user?.nombre || '',
@@ -112,7 +116,12 @@ export default function CheckoutPage() {
     if (step === 1 && validarDireccion()) {
       setStep(2);
     } else if (step === 2) {
-      setStep(3); // No hay validaciones de pago en este paso
+      // VALIDACIÓN CRÍTICA: Solo permite avanzar si el pago está completado
+      if (!pagoCompletado) {
+        alert('Debes completar el pago antes de continuar. Por favor, ingresa los datos de tu tarjeta o selecciona OXXO.');
+        return;
+      }
+      setStep(3);
     }
   };
 
@@ -131,6 +140,14 @@ export default function CheckoutPage() {
       if (!user?.id) {
         alert('Debes iniciar sesión para completar la compra.');
         router.push('/loginUsuario');
+        return;
+      }
+      
+      // VALIDACIÓN CRÍTICA: Verificar que el pago esté completado
+      if (!pagoCompletado || !paymentIntentId) {
+        alert('Error: El pago no se ha completado. Por favor, regresa al paso de pagos y completa tu pago.');
+        setStep(2); // Regresar al paso de pagos
+        setLoading(false);
         return;
       }
 
@@ -175,10 +192,10 @@ export default function CheckoutPage() {
         })),
         pago: {
           metodoPago: 'stripe',
-          estado: 'pendiente',
+          estado: 'completado',
           moneda: 'MXN',
-          paymentIntentId: null, // Se actualizará cuando se complete el pago
-          success: false,
+          paymentIntentId: paymentIntentId, // ID del pago completado
+          success: true,
         },
       };
 
@@ -490,13 +507,34 @@ export default function CheckoutPage() {
                     amount={total}
                     onPaymentSuccess={(paymentIntent) => {
                       console.log('Pago exitoso:', paymentIntent);
-                      // Aquí puedes guardar la información del pedido en tu base de datos
-                      setStep(3);
+                      setPaymentIntentId(paymentIntent.id);
+                      // NO avanzar automáticamente - el usuario debe hacer clic en Continuar
                     }}
                     onPaymentError={(error) => {
                       console.error('Error en el pago:', error);
                     }}
+                    onPaymentStatusChange={(pagoExitoso) => {
+                      setPagoCompletado(pagoExitoso);
+                      if (pagoExitoso) {
+                        console.log('✅ Pago completado - Usuario puede continuar');
+                      } else {
+                        console.log('❌ Pago no completado - Usuario bloqueado');
+                      }
+                    }}
                   />
+                  
+                  {/* Indicador de estado del pago */}
+                  {pagoCompletado && (
+                    <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle size={20} className="text-emerald-600" />
+                        <div className="text-sm text-emerald-800">
+                          <p className="font-medium">✅ Pago Completado</p>
+                          <p>Ahora puedes continuar al siguiente paso</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -546,10 +584,10 @@ export default function CheckoutPage() {
                   {step < 3 ? (
                     <button
                       onClick={siguientePaso}
-                      disabled={step === 1 ? !validarDireccion() : false}
+                      disabled={step === 1 ? !validarDireccion() : (step === 2 ? !pagoCompletado : false)}
                       className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                     >
-                      Continuar
+                      {step === 2 && !pagoCompletado ? 'Completar Pago Primero' : 'Continuar'}
                     </button>
                   ) : (
                     <button
