@@ -4,9 +4,13 @@ import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
 import { AuthProvider } from '@/utils/hooks/useAuth';
 import { CarritoProvider } from '@/utils/context/CarritoContext';
+import { LoaderProvider } from '@/utils/context/LoaderContext';
 
 export const metadata = {
   title: "Clínica Homeopática - Consultorio Homeopático Especializado en Pachuca, Hidalgo",
+   icons: {
+    icon: "/logo.svg",
+  },
   keywords: [
     "clínica homeopática", 
     "consultorio homeopático", 
@@ -131,9 +135,11 @@ export default function RootLayout({ children }) {
       <body className={` antialiased`} >
         <AuthProvider>
           <CarritoProvider>
-            <Navbar/>
-            {children}
-            <Footer />
+            <LoaderProvider>
+              <Navbar/>
+              {children}
+              <Footer />
+            </LoaderProvider>
           </CarritoProvider>
         </AuthProvider>
       </body>

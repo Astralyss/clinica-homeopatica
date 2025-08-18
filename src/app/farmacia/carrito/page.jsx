@@ -34,7 +34,6 @@ export default function CarritoPage() {
     obtenerProductosSinStock,
     tieneStockSuficiente
   } = useCarrito();
-  const [selectedItems, setSelectedItems] = useState(new Set());
   const [showEmptyMessage, setShowEmptyMessage] = useState(false);
 
   // Mostrar mensaje de carrito vacío cuando no hay productos
@@ -49,10 +48,6 @@ export default function CarritoPage() {
     new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(price);
 
   // Calcular totales
-  const totalSeleccionados = carrito
-    .filter(item => selectedItems.has(item.id))
-    .reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-
   const totalCarrito = obtenerTotal();
   const envioCosto = totalCarrito >= 1250 ? 0 : 250;
   const totalConEnvio = totalCarrito + envioCosto;
@@ -73,48 +68,6 @@ export default function CarritoPage() {
 
   const handleEliminarProducto = (id) => {
     eliminarProducto(id);
-    setSelectedItems(prev => {
-      const nuevo = new Set(prev);
-      nuevo.delete(id);
-      return nuevo;
-    });
-  };
-
-  const toggleSeleccion = (id) => {
-    setSelectedItems(prev => {
-      const nuevo = new Set(prev);
-      if (nuevo.has(id)) {
-        nuevo.delete(id);
-      } else {
-        nuevo.add(id);
-      }
-      return nuevo;
-    });
-  };
-
-  const seleccionarTodos = () => {
-    if (selectedItems.size === carrito.length) {
-      setSelectedItems(new Set());
-    } else {
-      setSelectedItems(new Set(carrito.map(item => item.id)));
-    }
-  };
-
-  const comprarSeleccionados = () => {
-    const itemsSeleccionados = carrito.filter(item => selectedItems.has(item.id));
-    if (itemsSeleccionados.length === 0) return;
-    
-    // Verificar que no haya errores de stock en los productos seleccionados
-    const productosConError = itemsSeleccionados.filter(item => obtenerInfoStock(item.id));
-    if (productosConError.length > 0) {
-      alert('No puedes proceder con productos que exceden el stock disponible. Revisa las cantidades.');
-      return;
-    }
-    
-    // Guardar solo los productos seleccionados en el carrito
-    localStorage.setItem('carrito', JSON.stringify(itemsSeleccionados));
-    
-    router.push('/farmacia/checkout');
   };
 
   const comprarTodo = () => {
@@ -228,28 +181,14 @@ export default function CarritoPage() {
           {/* Lista de productos */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              {/* Header de selección */}
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.size === carrito.length && carrito.length > 0}
-                    onChange={seleccionarTodos}
-                    className="w-5 h-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
-                  />
-                  <span className="font-medium text-gray-900">
-                    Seleccionar todos ({carrito.length})
-                  </span>
-                </div>
-                
-                {selectedItems.size > 0 && (
-                  <button
-                    onClick={() => setSelectedItems(new Set())}
-                    className="text-sm text-gray-500 hover:text-gray-700"
-                  >
-                    Deseleccionar
-                  </button>
-                )}
+              {/* Header de productos */}
+              <div className="mb-6 pb-4 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Productos en tu carrito ({carrito.length})
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Revisa y ajusta las cantidades antes de proceder con tu compra
+                </p>
               </div>
 
               {/* Lista de productos */}
@@ -263,14 +202,6 @@ export default function CarritoPage() {
                     <div key={item.id} className={`flex items-center gap-4 p-4 border rounded-xl hover:shadow-sm transition-shadow ${
                       tieneErrorStock ? 'border-red-200 bg-red-50' : 'border-gray-100'
                     }`}>
-                      {/* Checkbox de selección */}
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.has(item.id)}
-                        onChange={() => toggleSeleccion(item.id)}
-                        className="w-5 h-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
-                      />
-
                       {/* Imagen del producto */}
                       <div className="relative w-20 h-20 bg-gray-50 rounded-lg border border-gray-100 overflow-hidden flex-shrink-0">
                         <Image
@@ -327,6 +258,7 @@ export default function CarritoPage() {
                           <button
                             onClick={() => handleEliminarProducto(item.id)}
                             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar producto"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -376,31 +308,17 @@ export default function CarritoPage() {
 
               {/* Botones de acción */}
               <div className="space-y-3">
-                {selectedItems.size > 0 ? (
-                  <button
-                    onClick={comprarSeleccionados}
-                    className={`w-full font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                      hayErroresStock() 
-                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    }`}
-                  >
-                    <CreditCard size={20} />
-                    {hayErroresStock() ? 'Revisar seleccionados' : `Comprar seleccionados (${selectedItems.size})`}
-                  </button>
-                ) : (
-                  <button
-                    onClick={comprarTodo}
-                    className={`w-full font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                      hayErroresStock() 
-                        ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    }`}
-                  >
-                    <CreditCard size={20} />
-                    {hayErroresStock() ? 'Revisar carrito' : 'Comprar todo'}
-                  </button>
-                )}
+                <button
+                  onClick={comprarTodo}
+                  className={`w-full font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                    hayErroresStock() 
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  }`}
+                >
+                  <CreditCard size={20} />
+                  {hayErroresStock() ? 'Revisar carrito' : 'Comprar todo'}
+                </button>
 
                 <button
                   onClick={continuarComprando}
