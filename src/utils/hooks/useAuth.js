@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, createContext, useContext } from 'react';
+import { clearBrowserStorage, clearAuthData } from '@/utils/browserStorage';
 
 // Contexto de autenticación
 const AuthContext = createContext();
@@ -16,11 +17,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [logoutRequested, setLogoutRequested] = useState(false);
 
   // Verificar si el usuario está autenticado al cargar
   useEffect(() => {
-    verificarAutenticacion();
-  }, []);
+    if (!logoutRequested) {
+      verificarAutenticacion();
+    }
+  }, [logoutRequested]);
 
   const verificarAutenticacion = async () => {
     try {
@@ -51,6 +55,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
+      setLogoutRequested(false); // Resetear la bandera de logout
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -111,22 +116,73 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const forceLogout = () => {
+    // Forzar logout sin llamar a la API (útil para casos de error o emergencia)
+    console.log('🔄 Forzando logout...');
+    clearAuthState();
+    
+    // Redirigir a la página principal
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  };
+
+  const clearAuthState = () => {
+    setUser(null);
+    setError(null);
+    setLoading(false);
+    setLogoutRequested(true);
+    
+    // Usar las utilidades especializadas para limpiar el almacenamiento
+    try {
+      clearAuthData(); // Limpiar solo datos de autenticación primero
+      clearBrowserStorage(); // Luego limpiar todo el almacenamiento
+    } catch (error) {
+      console.error('Error limpiando almacenamiento:', error);
+    }
+  };
+
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      // Marcar que se solicitó logout para evitar verificación automática
+      setLogoutRequested(true);
       
+      // Primero limpiar el estado local
       setUser(null);
       setError(null);
+      
+      // Luego hacer la petición de logout
+      const logoutResponse = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      if (logoutResponse.ok) {
+        // Si el logout fue exitoso, limpiar todo el estado
+        clearAuthState();
+      } else {
+        // Si hubo error en la API, limpiar estado local de todas formas
+        clearAuthState();
+        console.error('Error en API de logout:', logoutResponse.status);
+      }
+      
     } catch (error) {
       console.error('Error en logout:', error);
+      // Asegurar que el estado se mantenga limpio incluso si hay error
+      clearAuthState();
     }
   };
 
   const clearError = () => {
     setError(null);
+  };
+
+  const resetLogoutFlag = () => {
+    setLogoutRequested(false);
   };
 
   const value = {
@@ -136,8 +192,11 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    forceLogout,
     clearError,
     refreshUser,
+    resetLogoutFlag,
+    clearAuthState,
     isAuthenticated: !!user,
     isAdmin: user?.rol === 'admin',
   };

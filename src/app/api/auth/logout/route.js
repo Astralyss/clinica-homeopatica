@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { deleteAuthCookie } from '@/utils/cookieConfig';
 
 export async function POST() {
   try {
@@ -8,13 +9,19 @@ export async function POST() {
       message: 'Sesión cerrada exitosamente'
     });
 
-    // Eliminar cookie de autenticación
-    response.cookies.set('auth-token', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 0 // Expirar inmediatamente
-    });
+    // Eliminar cookie de autenticación usando la función centralizada
+    deleteAuthCookie(response);
+
+    // Headers para limpiar caché del navegador
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    response.headers.set('Clear-Site-Data', '"cache", "cookies", "storage"');
+    
+    // Headers adicionales para asegurar que no se almacene en caché
+    response.headers.set('Surrogate-Control', 'no-store');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
 
     return response;
 

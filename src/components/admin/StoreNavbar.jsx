@@ -25,12 +25,38 @@ function StoreNavbar({
   const { logout, isAdmin } = useAuth();
 
   const handleLogout = async () => {
-    await logout();
-    setLogoutMsg('Sesión cerrada correctamente');
-    setTimeout(() => {
-      setLogoutMsg('');
-      router.push('/');
-    }, 1500);
+    try {
+      setLogoutMsg('Cerrando sesión...');
+      
+      // Timeout de seguridad para el logout
+      const logoutTimeout = setTimeout(() => {
+        console.log('⏰ Timeout de logout, forzando...');
+        forceLogout();
+      }, 5000); // 5 segundos de timeout
+      
+      await logout();
+      
+      // Limpiar timeout si el logout fue exitoso
+      clearTimeout(logoutTimeout);
+      
+      setLogoutMsg('Sesión cerrada correctamente');
+      
+      // Esperar un poco más antes de redirigir para asegurar que el estado se limpie
+      setTimeout(() => {
+        setLogoutMsg('');
+        // Forzar la redirección a la página principal
+        window.location.href = '/';
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error en logout:', error);
+      setLogoutMsg('Error al cerrar sesión, forzando...');
+      
+      // Si hay error, forzar logout después de un breve delay
+      setTimeout(() => {
+        forceLogout();
+      }, 1500);
+    }
   };
 
   const handleAdminClick = () => {
