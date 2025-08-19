@@ -394,12 +394,7 @@ function Farmacia() {
                             )}
                           </div>
                           
-                          {/* Cantidad en carrito */}
-                          {cantidadEnCarrito > 0 && (
-                            <div className="text-xs text-emerald-600 mb-3 font-medium h-4 cart-info">
-                              {cantidadEnCarrito} en tu carrito
-                            </div>
-                          )}
+
                           
                           {/* Selector de cantidad */}
                           <div className="flex items-center gap-2 mb-3 h-8 quantity-selector">
