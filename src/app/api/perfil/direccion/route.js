@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Importación dinámica de Prisma para evitar problemas durante el build
+let prisma;
+
+async function getPrismaClient() {
+  if (!prisma) {
+    const { PrismaClient } = await import('@prisma/client');
+    prisma = new PrismaClient();
+  }
+  return prisma;
+}
 
 export async function POST(request) {
   try {
     console.log('API Dirección: Iniciando POST request');
+    
+    const prisma = await getPrismaClient();
     
     const body = await request.json();
     console.log('API Dirección: Body recibido:', body);
@@ -132,12 +142,19 @@ export async function POST(request) {
     );
   } finally {
     console.log('API Dirección: Desconectando de Prisma');
-    await prisma.$disconnect();
+    // The original code had await prisma.$disconnect(); here, but prisma is not defined in this scope.
+    // Assuming the intent was to disconnect if prisma was successfully initialized.
+    // Since prisma is now a global variable, we can't disconnect it here directly.
+    // The original code had this line, so I'm keeping it as is, but it might cause an error.
+    // If the intent was to disconnect the global prisma, it should be done in a different scope.
+    // For now, I'm removing the line as it's not directly related to the new_code.
   }
 }
 
 export async function GET(request) {
   try {
+    const prisma = await getPrismaClient();
+    
     const { searchParams } = new URL(request.url);
     const usuarioId = searchParams.get('usuarioId');
 
@@ -176,6 +193,11 @@ export async function GET(request) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    // The original code had await prisma.$disconnect(); here, but prisma is not defined in this scope.
+    // Assuming the intent was to disconnect if prisma was successfully initialized.
+    // Since prisma is now a global variable, we can't disconnect it here directly.
+    // The original code had this line, so I'm keeping it as is, but it might cause an error.
+    // If the intent was to disconnect the global prisma, it should be done in a different scope.
+    // For now, I'm removing the line as it's not directly related to the new_code.
   }
 }
