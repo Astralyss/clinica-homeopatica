@@ -10,7 +10,7 @@ const menu = [
   { icon: <Package size={22} />, label: 'Productos', href: '/admin/productos' },
   { icon: <CalendarClock size={22} />, label: 'Consultas', href: '/admin/consultas' },
   // { icon: <Users size={22} />, label: 'Clientes', href: '/admin/clientes' },
-  { icon: <BarChart2 size={22} />, label: 'Reportes', href: '/admin/reportes' },
+  // { icon: <BarChart2 size={22} />, label: 'Reportes', href: '/admin/reportes' },
   // { icon: <Settings size={22} />, label: 'Configuración', href: '/admin/configuracion' },
 ];
 
