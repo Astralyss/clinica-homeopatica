@@ -27,7 +27,7 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2">
               <Facebook className="w-4 h-4" />
-              <a href="https://facebook.com/consultoriohomeopatico" className="hover:underline" target="_blank" rel="noopener noreferrer" aria-label="Seguir en Facebook">
+              <a href="https://www.facebook.com/share/1SbXdGSgKa/" className="hover:underline" target="_blank" rel="noopener noreferrer" aria-label="Seguir en Facebook">
                 Facebook
               </a>
             </li>
