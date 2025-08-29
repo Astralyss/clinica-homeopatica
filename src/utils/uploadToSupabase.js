@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const bucket = 'test-iamage'; // Cambia si tu bucket tiene otro nombre
+const bucket = 'imagesClinica'; // Cambia si tu bucket tiene otro nombre
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
